@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AutoFixture" Version="4.18.0" />
+        <PackageReference Include="AutoFixture.Xunit2" Version="4.18.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.14" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+        <PackageReference Include="Polly" Version="7.2.3" />
+        <PackageReference Include="Refit" Version="6.3.2" />
+        <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+        <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="19.0.1" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+        <PackageReference Include="TestableIO.System.IO.Abstractions" Version="19.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="SteamClientTestPolygonConsole" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Files\ProxyPool_Socks5.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>
