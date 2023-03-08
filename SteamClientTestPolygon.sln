@@ -4,6 +4,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamClientTestPolygonWebAp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamClientTestPolygonWebApi.UnitTests", "SteamClientTestPolygonWebApi.UnitTests\SteamClientTestPolygonWebApi.UnitTests.csproj", "{A46DF60A-368E-448E-B446-42BDA6757F60}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamClientTestPolygonWebApi.TestPolygon", "SteamClientTestPolygonWebApi.TestPolygon\SteamClientTestPolygonWebApi.TestPolygon.csproj", "{7F3D0ABE-8364-4878-818E-A29D99283A45}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamClientTestPolygonWebApi.IntegrationTests", "SteamClientTestPolygonWebApi.IntegrationTests\SteamClientTestPolygonWebApi.IntegrationTests.csproj", "{49A29F0B-A834-4034-BEC2-E948A6E4DC16}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{A46DF60A-368E-448E-B446-42BDA6757F60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A46DF60A-368E-448E-B446-42BDA6757F60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A46DF60A-368E-448E-B446-42BDA6757F60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F3D0ABE-8364-4878-818E-A29D99283A45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F3D0ABE-8364-4878-818E-A29D99283A45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F3D0ABE-8364-4878-818E-A29D99283A45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F3D0ABE-8364-4878-818E-A29D99283A45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49A29F0B-A834-4034-BEC2-E948A6E4DC16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49A29F0B-A834-4034-BEC2-E948A6E4DC16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49A29F0B-A834-4034-BEC2-E948A6E4DC16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49A29F0B-A834-4034-BEC2-E948A6E4DC16}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

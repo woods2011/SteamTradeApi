@@ -10,6 +10,12 @@
         <PackageReference Include="AutoFixture" Version="4.18.0" />
         <PackageReference Include="AutoFixture.Xunit2" Version="4.18.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.14" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.3">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="Polly" Version="7.2.3" />
         <PackageReference Include="Refit" Version="6.3.2" />
@@ -21,13 +27,27 @@
     </ItemGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="SteamClientTestPolygonConsole" />
+        <InternalsVisibleTo Include="SteamClientTestPolygonWebApi.TestPolygon" />
+        <InternalsVisibleTo Include="SteamClientTestPolygonWebApi.UnitTests" />
+        <InternalsVisibleTo Include="SteamClientTestPolygonWebApi.IntegrationTests" />
     </ItemGroup>
 
     <ItemGroup>
       <None Update="Files\ProxyPool_Socks5.txt">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="Files\Prices.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="Files\ExternalInventoryResponseExample.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Update="Files\ExternalInventoryResponseOldExample.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

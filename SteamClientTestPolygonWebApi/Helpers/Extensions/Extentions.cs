@@ -76,3 +76,13 @@ public static class EnumerableMaterializeExtensions
         public T this[int index] => _source[index];
     }
 }
+
+public static class GeneralEnumerableExtensions
+{
+    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> sequence) => sequence.OfType<T>();
+}
+
+public static class TaskExtensions
+{
+    public static Task<T[]> WhenAllAsync<T>(this IEnumerable<Task<T>> values) => Task.WhenAll(values);
+}

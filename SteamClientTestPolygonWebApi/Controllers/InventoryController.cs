@@ -1,18 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Text.Json;
-using System.Web;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
-using SteamClientTestPolygonWebApi.Contracts;
+using Refit;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Contracts.Requests;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
-using SteamClientTestPolygonWebApi.Helpers;
-using SteamClientTestPolygonWebApi.Helpers.Extensions;
+using SteamClientTestPolygonWebApi.Infrastructure.SteamClients;
 
 namespace SteamClientTestPolygonWebApi.Controllers
 {
@@ -21,23 +15,24 @@ namespace SteamClientTestPolygonWebApi.Controllers
     [Route("[controller]")]
     public class InventoryController : ControllerBase
     {
-        private readonly HttpClient _steamClient;
+        private readonly ISteamInventoriesClient _steamInventoriesClient;
+        private readonly ISteamPricesClient _steamPricesClient;
         private readonly IMemoryCache _memoryCache;
-        private readonly JsonSerializerOptions _jsonDeserializeOptions;
 
-        private readonly AsyncRetryPolicy<HttpResponseMessage> _policy = Policy<HttpResponseMessage>
-            .Handle<HttpRequestException>()
-            .OrResult(message => message.IsSuccessStatusCode is false)
-            .RetryAsync(5);
+        private static readonly AsyncRetryPolicy<ApiResponse<SteamSdkInventoryResponse>> SteamInventoriesRetryPolicy =
+            PolicyFactory<ApiResponse<SteamSdkInventoryResponse>>();
+        
+        private static readonly AsyncRetryPolicy<ApiResponse<SteamSdkItemPriceResponse>> SteamPricesRetryPolicy =
+            PolicyFactory<ApiResponse<SteamSdkItemPriceResponse>>();
 
 
-        public InventoryController(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
+        public InventoryController(ISteamInventoriesClient steamInventoriesClient, ISteamPricesClient steamPricesClient,
+            IMemoryCache memoryCache)
         {
-            _steamClient = httpClientFactory.CreateClient("SteamClient");
+            _steamInventoriesClient = steamInventoriesClient;
+            _steamPricesClient = steamPricesClient;
             _memoryCache = memoryCache;
-            _jsonDeserializeOptions = new JsonSerializerOptions { PropertyNamingPolicy = new SnakeCaseNamingPolicy() };
         }
-
 
         [HttpGet]
         [ProducesResponseType(typeof(SteamInventoryResponse), StatusCodes.Status200OK)]
@@ -46,37 +41,34 @@ namespace SteamClientTestPolygonWebApi.Controllers
         [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
         public async Task<ActionResult<SteamInventoryResponse>> Get([FromQuery] GetSteamInventoryRequest request)
         {
-            var entryKey = $"Inventory_{request.Steam64Id}";
-            if (_memoryCache.TryGetValue(entryKey, out SteamInventoryResponse cacheValue))
-                return cacheValue;
+            var entryKey = $"Inventory-{request.Steam64Id}";
+            if (_memoryCache.TryGetValue(entryKey, out SteamInventoryResponse? cacheValue))
+                return cacheValue!;
 
-            HttpResponseMessage serializedResponse;
-            try
-            {
-                serializedResponse = await _policy.ExecuteAsync(() =>
-                    _steamClient.GetAsync($"inventory/{request.Steam64Id}/570/2?count={request.MaxCount}"));
-            }
-            catch (HttpRequestException)
-            {
+            var executeResult = await SteamInventoriesRetryPolicy.ExecuteAndCaptureAsync(() =>
+                _steamInventoriesClient.GetInventory(request.Steam64Id, 570, request.MaxCount));
+
+            if (executeResult.Outcome is OutcomeType.Failure)
                 return StatusCode(StatusCodes.Status504GatewayTimeout, "Steam API is temporary unavailable");
-            }
 
-            if (serializedResponse.IsSuccessStatusCode is false)
-                return StatusCode(StatusCodes.Status502BadGateway, "Steam API is temporary unavailable");
+            var steamResponse = executeResult.Result;
+            
+            if (steamResponse.IsSuccessStatusCode is false) // todo: never reach this condition
+                return StatusCode(StatusCodes.Status502BadGateway, $"Steam Error: {steamResponse.ReasonPhrase}" );
 
-            var response = await serializedResponse.Content
-                .ReadFromJsonAsync<ExternalSteamInventoryResponse>(_jsonDeserializeOptions);
+            var response = steamResponse.Content;
 
             if (response == null) return NotFound("Inventory not found");
 
             var itemAssetWithDescriptionResponses = response.Assets.Join(response.Descriptions,
-                itemAsset => (Classid: itemAsset.ClassId, Instanceid: itemAsset.InstanceId),
-                itemDescription => (Classid: itemDescription.ClassId, Instanceid: itemDescription.InstanceId),
+                itemAsset => (itemAsset.ClassId, itemAsset.InstanceId),
+                itemDescription => (itemDescription.ClassId, itemDescription.InstanceId),
                 (itemAsset, itemDescription) =>
                     new ItemWithDescriptionResponse(itemAsset.AssetId, itemDescription.Tradable));
+
             var steamInventoryResponse = new SteamInventoryResponse(itemAssetWithDescriptionResponses);
 
-
+            
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(15))
                 .SetAbsoluteExpiration(TimeSpan.FromMinutes(45));
@@ -84,5 +76,13 @@ namespace SteamClientTestPolygonWebApi.Controllers
 
             return Ok(steamInventoryResponse);
         }
+        
+        // Get With Prices
+
+        private static AsyncRetryPolicy<TApiResponse> PolicyFactory<TApiResponse>() where TApiResponse : IApiResponse =>
+            Policy<TApiResponse>
+                .Handle<HttpRequestException>().Or<TaskCanceledException>().Or<TimeoutException>()
+                .OrResult(response => response.IsSuccessStatusCode is false)
+                .RetryAsync(3);
     }
 }
