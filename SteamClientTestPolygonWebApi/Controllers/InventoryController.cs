@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Polly;
 using Polly.Retry;
@@ -18,20 +19,21 @@ namespace SteamClientTestPolygonWebApi.Controllers
         private readonly ISteamInventoriesClient _steamInventoriesClient;
         private readonly ISteamPricesClient _steamPricesClient;
         private readonly IMemoryCache _memoryCache;
+        private readonly ILogger<InventoryController> _logger;
 
         private static readonly AsyncRetryPolicy<ApiResponse<SteamSdkInventoryResponse>> SteamInventoriesRetryPolicy =
             PolicyFactory<ApiResponse<SteamSdkInventoryResponse>>();
-        
+
         private static readonly AsyncRetryPolicy<ApiResponse<SteamSdkItemPriceResponse>> SteamPricesRetryPolicy =
             PolicyFactory<ApiResponse<SteamSdkItemPriceResponse>>();
 
-
         public InventoryController(ISteamInventoriesClient steamInventoriesClient, ISteamPricesClient steamPricesClient,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache, ILogger<InventoryController> logger)
         {
             _steamInventoriesClient = steamInventoriesClient;
             _steamPricesClient = steamPricesClient;
             _memoryCache = memoryCache;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -52,13 +54,13 @@ namespace SteamClientTestPolygonWebApi.Controllers
                 return StatusCode(StatusCodes.Status504GatewayTimeout, "Steam API is temporary unavailable");
 
             var steamResponse = executeResult.Result;
-            
-            if (steamResponse.IsSuccessStatusCode is false) // todo: never reach this condition
-                return StatusCode(StatusCodes.Status502BadGateway, $"Steam Error: {steamResponse.ReasonPhrase}" );
+
+            if (steamResponse.IsSuccessStatusCode is false)
+                return StatusCode(StatusCodes.Status502BadGateway, $"Steam Error: {steamResponse.ReasonPhrase}");
 
             var response = steamResponse.Content;
 
-            if (response == null) return NotFound("Inventory not found");
+            if (response == null) return NotFound("Inventory not found or Hidden by privacy settings");
 
             var itemAssetWithDescriptionResponses = response.Assets.Join(response.Descriptions,
                 itemAsset => (itemAsset.ClassId, itemAsset.InstanceId),
@@ -68,7 +70,7 @@ namespace SteamClientTestPolygonWebApi.Controllers
 
             var steamInventoryResponse = new SteamInventoryResponse(itemAssetWithDescriptionResponses);
 
-            
+
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(15))
                 .SetAbsoluteExpiration(TimeSpan.FromMinutes(45));
@@ -76,13 +78,13 @@ namespace SteamClientTestPolygonWebApi.Controllers
 
             return Ok(steamInventoryResponse);
         }
-        
+
         // Get With Prices
 
         private static AsyncRetryPolicy<TApiResponse> PolicyFactory<TApiResponse>() where TApiResponse : IApiResponse =>
             Policy<TApiResponse>
-                .Handle<HttpRequestException>().Or<TaskCanceledException>().Or<TimeoutException>()
-                .OrResult(response => response.IsSuccessStatusCode is false)
+                .Handle<HttpRequestException>().Or<OperationCanceledException>().Or<TimeoutException>()
+                .OrResult(response => response.StatusCode >= HttpStatusCode.InternalServerError)
                 .RetryAsync(3);
     }
 }

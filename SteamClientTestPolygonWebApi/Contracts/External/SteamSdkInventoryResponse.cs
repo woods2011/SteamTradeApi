@@ -5,7 +5,7 @@ public class SteamSdkInventoryResponse
     public IEnumerable<SteamSdkAssetResponse> Assets { get; init; }
     public IEnumerable<SteamSdkDescriptionResponse> Descriptions { get; init; }
 
-    public int TotalInventoryCount { get; set; }
+    public int TotalInventoryCount { get; init; }
 }
 
 public class SteamSdkAssetResponse
@@ -44,7 +44,7 @@ public class SteamSdkDescriptionResponse
 
     // public IEnumerable<SteamSdkNestedDescriptionResponse> OwnerDescriptions { get; init; }
 
-    public string Name { get; init; }
+    // public string Name { get; init; }
 
     // public string NameColor { get; init; }
 
@@ -54,11 +54,11 @@ public class SteamSdkDescriptionResponse
 
     public string MarketHashName { get; init; }
 
-    public int Commodity { get; init; }
+    // public int Commodity { get; init; }
 
-    public int MarketTradableRestriction { get; init; }
+    // public int MarketTradableRestriction { get; init; }
 
-    public int MarketMarketableRestriction { get; init; }
+    // public int MarketMarketableRestriction { get; init; }
 
     public int Marketable { get; init; }
 
