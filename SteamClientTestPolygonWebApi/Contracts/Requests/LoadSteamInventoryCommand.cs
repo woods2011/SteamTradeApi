@@ -2,8 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SteamClientTestPolygonWebApi.Contracts.Requests;
 
-// ToDo: Переделать в command
-
 public class LoadSteamInventoryCommand
 {
     [Required]

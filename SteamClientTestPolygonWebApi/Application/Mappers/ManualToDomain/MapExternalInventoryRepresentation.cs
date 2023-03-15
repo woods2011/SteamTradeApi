@@ -36,7 +36,7 @@ public static class MapExternalInventoryRepresentation
         this SteamSdkInventoryResponse inventory, LoadSteamInventoryCommand command,
         DateTime nowUtc, ITradeCooldownParser tradeCooldownParser)
     {
-        var assets = MapToGameInventoryAssets(inventory, command, nowUtc, tradeCooldownParser);
+        var assets = MapToGameInventoryAssets(inventory, command, tradeCooldownParser);
 
         return GameInventory.Create(
             appId: command.AppId,
@@ -47,7 +47,7 @@ public static class MapExternalInventoryRepresentation
     
     public static List<GameInventoryAsset> MapToGameInventoryAssets(
         this SteamSdkInventoryResponse inventory, LoadSteamInventoryCommand command,
-        DateTime nowUtc, ITradeCooldownParser tradeCooldownParser)
+        ITradeCooldownParser tradeCooldownParser)
     {
         var assets = inventory.Assets.Join(inventory.Descriptions,
                 asset => (asset.ClassId, asset.InstanceId),

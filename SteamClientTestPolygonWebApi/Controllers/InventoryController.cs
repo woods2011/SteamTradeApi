@@ -59,10 +59,10 @@ namespace SteamClientTestPolygonWebApi.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
+        [HttpGet("{Steam64Id}/{AppId}")]
         [ProducesResponseType(typeof(GeneralGameInventoryResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GeneralGameInventoryResponse>> Get([FromQuery] GetSteamInventoryQuery query,
+        public async Task<ActionResult<GeneralGameInventoryResponse>> Get(GetSteamInventoryQuery query,
             CancellationToken token)
         {
             var entryKey = $"InventoryGeneralQuery-{query.AppId}{query.Steam64Id}";
@@ -105,13 +105,13 @@ namespace SteamClientTestPolygonWebApi.Controllers
         }
 
 
-        [HttpPut]
+        [HttpPut("{Steam64Id}/{AppId}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status502BadGateway)]
         [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
-        public async Task<ActionResult> Load([FromQuery] LoadSteamInventoryCommand command,
+        public async Task<ActionResult> Load(LoadSteamInventoryCommand command,
             CancellationToken token)
         {
             // ToDo: Вынести логику в Command Handler или App service
@@ -131,7 +131,7 @@ namespace SteamClientTestPolygonWebApi.Controllers
 
             var tradeCooldownParser = _tradeCooldownParserFactory.Create(command.AppId);
             var inventoryAssetsDomain = inventoryResponse
-                .MapToGameInventoryAssets(command, _dateTimeProvider.UtcNow, tradeCooldownParser);
+                .MapToGameInventoryAssets(command, tradeCooldownParser);
             var inventoryDomain =
                 await _dbCtx.Inventories.FindAsync(new object[] { command.Steam64Id.ToString(), command.AppId }, token);
 

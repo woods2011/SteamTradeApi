@@ -1,9 +1,9 @@
 using System.Net;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Refit;
 using SteamClientTestPolygonWebApi.Application.Common;
-using SteamClientTestPolygonWebApi.Application.Utils;
 using SteamClientTestPolygonWebApi.Application.Utils.TradeCooldownParsers;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Helpers.Refit;
@@ -35,6 +35,8 @@ public class Program
         AddProxyInfrastructure(builder);
         AddSteamClients(builder);
 
+        builder.Services.Configure<ApiBehaviorOptions>(
+            options => options.SuppressInferBindingSourcesForParameters = true);
         builder.Services.AddDistributedMemoryCache();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();

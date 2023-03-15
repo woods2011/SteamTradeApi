@@ -2,8 +2,6 @@
 
 namespace SteamClientTestPolygonWebApi.Contracts.Requests;
 
-// ToDo: Переделать в query
-
 public class GetSteamInventoryQuery
 {
     [Required]
