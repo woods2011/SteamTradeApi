@@ -29,33 +29,27 @@ public interface ISelfIpAddressProvider
 public class SelfIpAddressProvider : ISelfIpAddressProvider
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private string? _ip;
 
-    private readonly AsyncRetryPolicy<HttpResponseMessage> _retryPolicy = Policy<HttpResponseMessage>
-        .Handle<Exception>()
-        .OrResult(r => r.IsSuccessStatusCode is false)
-        .RetryAsync(3);
-
-    public string Ip { get; private set; }
-
+    public string Ip => _ip ??= GetSelfIpAddressOrDefault(CancellationToken.None).Result
+                                ?? throw new Exception("Failed to get self ip address and fallback is not set");
 
     //ToDo: change to async Factory method with cancellation token
-    public SelfIpAddressProvider(IHttpClientFactory httpClientFactory, IOptions<IpFallBack>? ipFallBack)
+    public SelfIpAddressProvider(IHttpClientFactory httpClientFactory, IpFallBack? ipFallBack = null)
     {
         _httpClientFactory = httpClientFactory;
-        Ip = GetSelfIpAddressOrDefault(CancellationToken.None).Result
-             ?? ipFallBack?.Value.Ip
-             ?? throw new Exception("Failed to get self ip address from remote and fallback is not set");
+        _ip = ipFallBack?.Ip;
     }
 
     public async Task<bool> TryForceUpdateAsync(CancellationToken token)
     {
         var ipAddressOrDefault = await GetSelfIpAddressOrDefault(token);
         if (ipAddressOrDefault is null) return false;
-        Ip = ipAddressOrDefault;
+        _ip = ipAddressOrDefault;
         return true;
     }
 
-    public async Task<string?> GetSelfIpAddressOrDefault(CancellationToken token)
+    private async Task<string?> GetSelfIpAddressOrDefault(CancellationToken token)
     {
         var timeout = TimeSpan.FromSeconds(5);
 
@@ -66,13 +60,12 @@ public class SelfIpAddressProvider : ISelfIpAddressProvider
         var ipApiComClient = new HttpClient { BaseAddress = new Uri("http://ip-api.com"), Timeout = timeout };
         var ipApiComGetIpResponse =
             await GetResponseOrDefault<IpApiComGetIpResponse>(ipApiComClient, "json/?fields=status,proxy,query", token);
-        if (ipApiComGetIpResponse is not null) return ipApiComGetIpResponse.Ip;
 
-        return null;
+        return ipApiComGetIpResponse?.Ip;
     }
 
-    private async Task<TResponse?> GetResponseOrDefault<TResponse>
-        (HttpClient ipifyOrgClient, string requestUri, CancellationToken token) where TResponse : class
+    private async Task<TResponse?> GetResponseOrDefault<TResponse>(
+        HttpClient ipifyOrgClient, string requestUri, CancellationToken token) where TResponse : class
     {
         var executeResult =
             await _retryPolicy.ExecuteAndCaptureAsync(ct => ipifyOrgClient.GetAsync(requestUri, ct), token);
@@ -85,6 +78,11 @@ public class SelfIpAddressProvider : ISelfIpAddressProvider
         //     throw new Exception($"Failed to deserialize response from {ipifyOrgClient.BaseAddress?.Host}");
         return response;
     }
+
+    private readonly AsyncRetryPolicy<HttpResponseMessage> _retryPolicy = Policy<HttpResponseMessage>
+        .Handle<Exception>()
+        .OrResult(r => r.IsSuccessStatusCode is false)
+        .RetryAsync(10);
 
     private record IpifyGetIpResponse(string Ip);
 

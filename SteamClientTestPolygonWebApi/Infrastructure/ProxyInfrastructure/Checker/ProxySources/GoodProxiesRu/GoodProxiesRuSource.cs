@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Options;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker.ProxySources.GoodProxiesRu;
 
@@ -38,12 +39,15 @@ public class GoodProxiesRuSource : IProxySource
     }
 }
 
-//ToDO: Add validation
 public class GoodProxiesRuSettings
 {
-    public string ApiKey { get; init; } = null!;
+    [Range(0, 20000)]
     public int MaxPingMs { get; init; }
+    
+    [Range(1, 600)]
     public int MaxTimeFromLastUpdateSeconds { get; init; }
+    
+    [Range(0, 100)]
     public int MinSuccessfulChecksPercent { get; init; }
 
     //public const string SectionName = "GoodProxiesRuSettings";

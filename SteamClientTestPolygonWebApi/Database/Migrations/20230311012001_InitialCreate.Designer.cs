@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 namespace SteamClientTestPolygonWebApi.Migrations
 {
     [DbContext(typeof(SteamTradeApiDbContext))]
-    partial class SteamTradeApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230311012001_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.3");
@@ -55,7 +58,7 @@ namespace SteamClientTestPolygonWebApi.Migrations
 
                     b.HasKey("AppId", "MarketHashName");
 
-                    b.ToTable("Items");
+                    b.ToTable("GameItems", (string)null);
                 });
 
             modelBuilder.Entity("SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.GameInventory", b =>

@@ -25,7 +25,7 @@ namespace SteamClientTestPolygonWebApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Items",
+                name: "GameItems",
                 columns: table => new
                 {
                     AppId = table.Column<int>(type: "INTEGER", nullable: false),
@@ -35,7 +35,7 @@ namespace SteamClientTestPolygonWebApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Items", x => new { x.AppId, x.MarketHashName });
+                    table.PrimaryKey("PK_GameItems", x => new { x.AppId, x.MarketHashName });
                 });
 
             migrationBuilder.CreateTable(
@@ -61,9 +61,9 @@ namespace SteamClientTestPolygonWebApi.Migrations
                         principalColumns: new[] { "OwnerSteam64Id", "AppId" },
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GameInventoryAssets_Items_AppId_ItemMarketHashName",
+                        name: "FK_GameInventoryAssets_GameItems_AppId_ItemMarketHashName",
                         columns: x => new { x.AppId, x.ItemMarketHashName },
-                        principalTable: "Items",
+                        principalTable: "GameItems",
                         principalColumns: new[] { "AppId", "MarketHashName" },
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -89,7 +89,7 @@ namespace SteamClientTestPolygonWebApi.Migrations
                 name: "GameInventories");
 
             migrationBuilder.DropTable(
-                name: "Items");
+                name: "GameItems");
         }
     }
 }

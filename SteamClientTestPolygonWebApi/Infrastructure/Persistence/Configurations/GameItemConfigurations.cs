@@ -8,6 +8,8 @@ public class GameItemConfigurations : IEntityTypeConfiguration<GameItem>
 {
     public void Configure(EntityTypeBuilder<GameItem> itemBuilder)
     {
+        itemBuilder.ToTable("GameItems");
+        
         itemBuilder.HasKey(gameItem => new { gameItem.AppId, gameItem.MarketHashName });
 
         itemBuilder.Property(gameItem => gameItem.MarketHashName).HasMaxLength(100);

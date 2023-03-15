@@ -38,11 +38,11 @@ public class GameInventoryAsset
         string itemMarketHashName,
         string ownerSteam64Id,
         bool isTradable,
-        DateTime? tradeCooldownUntil,
+        DateTime? tradeCooldownUntilUtc,
         bool isMarketable,
         string instanceId)
     {
-        if (isTradable && tradeCooldownUntil != null)
+        if (isTradable && tradeCooldownUntilUtc != null)
             throw new ArgumentException("Asset cannot be tradable and have a trade cooldown at the same time.");
 
         return new GameInventoryAsset(
@@ -51,7 +51,7 @@ public class GameInventoryAsset
             itemMarketHashName,
             ownerSteam64Id,
             isTradable,
-            tradeCooldownUntil,
+            tradeCooldownUntilUtc,
             isMarketable,
             instanceId);
     }

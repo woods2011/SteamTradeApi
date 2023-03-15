@@ -2,8 +2,8 @@
 
 public class SteamSdkInventoryResponse
 {
-    public IEnumerable<SteamSdkAssetResponse> Assets { get; init; }
-    public IEnumerable<SteamSdkDescriptionResponse> Descriptions { get; init; }
+    public IReadOnlyList<SteamSdkAssetResponse> Assets { get; init; }
+    public IReadOnlyList<SteamSdkDescriptionResponse> Descriptions { get; init; }
 
     public int TotalInventoryCount { get; init; }
 }
@@ -38,11 +38,11 @@ public class SteamSdkDescriptionResponse
 
     // public string IconUrlLarge { get; init; }
 
-    public IEnumerable<SteamSdkNestedDescriptionResponse> Descriptions { get; init; }
+    public IReadOnlyList<SteamSdkNestedDescriptionResponse>? Descriptions { get; init; }
 
     public int Tradable { get; init; }
 
-    // public IEnumerable<SteamSdkNestedDescriptionResponse> OwnerDescriptions { get; init; }
+    // public IEnumerable<SteamSdkNestedDescriptionResponse>? OwnerDescriptions { get; init; }
 
     // public string Name { get; init; }
 
@@ -62,12 +62,12 @@ public class SteamSdkDescriptionResponse
 
     public int Marketable { get; init; }
 
-    public IEnumerable<SteamSdkItemTagResponse> Tags { get; init; }
+    public IReadOnlyList<SteamSdkItemTagResponse> Tags { get; init; }
 }
 
 public class SteamSdkNestedDescriptionResponse
 {
-    public string Type { get; init; }
+    public string? Type { get; init; }
 
     public string Value { get; init; }
 

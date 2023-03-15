@@ -25,11 +25,11 @@ public class GameInventory
     public static GameInventory Create(
         int appId,
         string ownerSteam64Id,
-        DateTime lastUpdateDateTime,
+        DateTime lastUpdateDateTimeUtc,
         List<GameInventoryAsset> assets)
     {
         assets.ForEach(asset => EnforceAppIdInvariant(asset, appId));
-        return new GameInventory(appId, ownerSteam64Id, lastUpdateDateTime, assets);
+        return new GameInventory(appId, ownerSteam64Id, lastUpdateDateTimeUtc, assets);
     }
 
 
@@ -39,6 +39,9 @@ public class GameInventory
         _assets = assets;
         LastUpdateTimeUtc = lastUpdateTimeUtc;
     }
+
+    public void AutoUpdateTradeCooldown(DateTime nowUtc) =>
+        _assets.ForEach(asset => asset.AutoUpdateTradeCooldown(nowUtc));
 
     public void AddAsset(GameInventoryAsset asset)
     {

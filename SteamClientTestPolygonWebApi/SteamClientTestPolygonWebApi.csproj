@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="EFCore.BulkExtensions" Version="6.7.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.3">
@@ -39,12 +40,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Update="Files\ExternalInventoryResponseExample.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <Content Update="Files\ExternalInventoryResponseOldExample.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
+      <Folder Include="Database" />
     </ItemGroup>
 
 </Project>
