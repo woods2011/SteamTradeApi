@@ -1,4 +1,4 @@
-namespace SteamClientTestPolygonWebApi.Domain.GameItemAggregate;
+namespace SteamClientTestPolygonWebApi.Domain.Entities;
 
 public class GameItem
 {

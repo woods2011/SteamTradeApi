@@ -19,7 +19,6 @@ using SteamClientTestPolygonWebApi.Contracts.Requests;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.Entities;
-using SteamClientTestPolygonWebApi.Domain.GameItemAggregate;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 using SteamClientTestPolygonWebApi.Infrastructure.SteamClients;
 
@@ -74,7 +73,7 @@ namespace SteamClientTestPolygonWebApi.Controllers
             }
 
             // ToDo: Вынести логику в query Handler или App service
-            var inventoryResponse = await _dbCtx.Inventories.AsNoTracking() // As no tracking можно удалить
+            var inventoryResponse = await _dbCtx.Inventories.AsNoTracking() // As no tracking можно убрать
                 .Where(inv => inv.OwnerSteam64Id == query.Steam64Id.ToString() && inv.AppId == query.AppId)
                 .Select(inventory => new GeneralGameInventoryResponse(
                     inventory.AppId,

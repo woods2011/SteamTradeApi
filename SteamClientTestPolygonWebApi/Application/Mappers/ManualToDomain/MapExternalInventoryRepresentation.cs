@@ -1,9 +1,9 @@
 ﻿using SteamClientTestPolygonWebApi.Application.Utils.TradeCooldownParsers;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Contracts.Requests;
+using SteamClientTestPolygonWebApi.Domain.Entities;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.Entities;
-using SteamClientTestPolygonWebApi.Domain.GameItemAggregate;
 
 namespace SteamClientTestPolygonWebApi.Application.Mappers.ManualToDomain;
 
