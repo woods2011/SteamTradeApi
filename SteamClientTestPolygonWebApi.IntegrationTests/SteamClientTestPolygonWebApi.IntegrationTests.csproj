@@ -13,7 +13,6 @@
         <PackageReference Include="AutoFixture.Xunit2" Version="4.18.0" />
         <PackageReference Include="FluentAssertions" Version="6.10.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.14" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.3" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
         <PackageReference Include="RichardSzalay.MockHttp" Version="6.0.0" />
         <PackageReference Include="xunit" Version="2.4.1" />
@@ -29,6 +28,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\SteamClientTestPolygonWebApi\SteamClientTestPolygonWebApi.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Controllers\Inventory\ExternalApisResponsesJson\SteamSdkInventoryResponseExample.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

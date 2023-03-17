@@ -1,7 +1,7 @@
 using Refit;
 using SteamClientTestPolygonWebApi.Contracts.External;
 
-namespace SteamClientTestPolygonWebApi.Infrastructure.SteamClients;
+namespace SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
 
 public interface ISteamPricesClient
 {

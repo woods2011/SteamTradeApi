@@ -3,7 +3,7 @@ using AutoFixture.Xunit2;
 using FluentAssertions;
 using Refit;
 using RichardSzalay.MockHttp;
-using SteamClientTestPolygonWebApi.Infrastructure.SteamClients;
+using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
 
 namespace SteamClientTestPolygonWebApi.IntegrationTests.RefitClientsTests;
 

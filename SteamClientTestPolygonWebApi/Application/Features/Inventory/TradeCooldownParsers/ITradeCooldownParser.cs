@@ -2,9 +2,8 @@
 using System.Text.RegularExpressions;
 using SteamClientTestPolygonWebApi.Application.Common;
 using SteamClientTestPolygonWebApi.Contracts.External;
-using SteamClientTestPolygonWebApi.Controllers;
 
-namespace SteamClientTestPolygonWebApi.Application.Utils.TradeCooldownParsers;
+namespace SteamClientTestPolygonWebApi.Application.Features.Inventory.TradeCooldownParsers;
 
 public interface ITradeCooldownParser
 {
@@ -49,7 +48,7 @@ public class Dota2TradeCooldownParser : IAppSpecificTradeCooldownParser
 
         var expirationDatePacificTimeZone = new DateTimeOffset(expirationDateNoOffset, TimeSpan.FromHours(-8));
         return expirationDatePacificTimeZone.UtcDateTime;
-        
+
         // ----------------- Local functions -----------------
         static ReadOnlySpan<char> RemovePrefixAndTrim
             (ReadOnlySpan<char> input) => input.Slice(26).Trim();
@@ -59,6 +58,12 @@ public class Dota2TradeCooldownParser : IAppSpecificTradeCooldownParser
     }
 
     public int AppId => (int) AppIds.Dota2;
+}
+
+public class GeneralCooldownInfoScraper
+{
+    public string? TryFindCooldownString(SteamSdkDescriptionResponse itemDescription) =>
+        itemDescription.Descriptions?.LastOrDefault(od => od.Value.Length is > 40 and < 70)?.Value;
 }
 
 public enum AppIds

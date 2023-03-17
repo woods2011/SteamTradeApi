@@ -6,15 +6,14 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Refit;
-using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
-using SteamClientTestPolygonWebApi.Infrastructure.SteamClients;
 
 namespace SteamClientTestPolygonWebApi.IntegrationTests.Controllers;
 
-public class GeneralWebApplicationFactory : WebApplicationFactory<SteamClientTestPolygonWebApi.Program>
+public class GeneralWebApplicationFactory : WebApplicationFactory<SteamClientTestPolygonWebApi.Program>, IAsyncLifetime
 {
+    public HttpClient Client { get; private set; } = null!;
+    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureTestServices(services =>
@@ -38,12 +37,24 @@ public class GeneralWebApplicationFactory : WebApplicationFactory<SteamClientTes
                 options.UseSqlite(connection: serviceProvider.GetRequiredService<DbConnection>());
             });
 
-            using var scope = services.BuildServiceProvider().CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<DbContext>();
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
+            // Not Working почему-то
+            // using var scope = services.BuildServiceProvider().CreateScope();
+            // using var context = scope.ServiceProvider.GetRequiredService<SteamTradeApiDbContext>();
+            // context.Database.EnsureDeleted();
+            // context.Database.EnsureCreated();
         });
 
         builder.UseEnvironment("Development"); // ToDo: check if it's needed
     }
+
+    public async Task InitializeAsync()
+    {
+        Client = CreateClient();
+        using var serviceScope = Services.CreateScope();
+        var dbCtx = serviceScope.ServiceProvider.GetRequiredService<SteamTradeApiDbContext>();
+        await dbCtx.Database.EnsureDeletedAsync();
+        await dbCtx.Database.EnsureCreatedAsync();
+    }
+
+    Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
 }

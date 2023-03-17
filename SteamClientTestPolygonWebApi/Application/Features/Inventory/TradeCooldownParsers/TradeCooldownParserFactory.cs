@@ -1,10 +1,6 @@
-﻿using System.Globalization;
-using System.Text.RegularExpressions;
-using SteamClientTestPolygonWebApi.Application.Common;
-using SteamClientTestPolygonWebApi.Contracts.External;
-using SteamClientTestPolygonWebApi.Controllers;
+﻿using SteamClientTestPolygonWebApi.Application.Common;
 
-namespace SteamClientTestPolygonWebApi.Application.Utils.TradeCooldownParsers;
+namespace SteamClientTestPolygonWebApi.Application.Features.Inventory.TradeCooldownParsers;
 
 public interface ITradeCooldownParserFactory
 {

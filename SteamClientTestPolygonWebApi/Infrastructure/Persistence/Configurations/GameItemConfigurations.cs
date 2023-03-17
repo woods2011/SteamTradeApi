@@ -16,17 +16,4 @@ public class GameItemConfigurations : IEntityTypeConfiguration<GameItem>
         itemBuilder.Property(gameItem => gameItem.IconUrl).HasMaxLength(512);
         itemBuilder.Property(gameItem => gameItem.ClassId).HasMaxLength(100);
     }
-
-    // private static void ConfigureGameInventoryTable(EntityTypeBuilder<GameInventory> invBuilder)
-    // {
-    //     invBuilder.ToTable("GameInventories");
-    //
-    //     invBuilder.HasKey(inv => new { inv.OwnerSteam64Id, inv.AppId });
-    //
-    //     invBuilder.Property(inv => inv.OwnerSteam64Id)
-    //         .HasMaxLength(100);
-    //
-    //     // invBuilder.Property(inv => new { inv.OwnerSteam64Id, inv.AppId })
-    //     //     .ValueGeneratedNever();
-    // }
 }

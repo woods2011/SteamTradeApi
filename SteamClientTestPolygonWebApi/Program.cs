@@ -1,10 +1,13 @@
 using System.Net;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Refit;
 using SteamClientTestPolygonWebApi.Application.Common;
-using SteamClientTestPolygonWebApi.Application.Utils.TradeCooldownParsers;
+using SteamClientTestPolygonWebApi.Application.Features.Inventory.TradeCooldownParsers;
+using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Helpers.Refit;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
@@ -14,7 +17,6 @@ using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker.ProxyAnonymityJudges;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker.ProxySources;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker.ProxySources.GoodProxiesRu;
-using SteamClientTestPolygonWebApi.Infrastructure.SteamClients;
 
 namespace SteamClientTestPolygonWebApi;
 
@@ -31,7 +33,10 @@ public class Program
 
         builder.Services.AddDbContext<SteamTradeApiDbContext>(
             options => options.UseSqlite("Data Source=Database/SteamTradeApiDb.db"));
-
+        
+        builder.Services.AddSingleton(TypeAdapterConfig.GlobalSettings);
+        builder.Services.AddScoped<IMapper, ServiceMapper>();
+        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
         AddProxyInfrastructure(builder);
         AddSteamClients(builder);
 
@@ -98,11 +103,7 @@ public class Program
             new RefitSettings(new SystemTextJsonContentSerializer(SteamApiJsonSettings.Default));
 
         services.AddRefitClient<ISteamPricesClient>(generalSteamRefitClientSettings)
-            .ConfigureHttpClient(c =>
-            {
-                c.BaseAddress = new Uri("https://steamcommunity.com");
-                c.Timeout = TimeSpan.FromSeconds(10);
-            })
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
             .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
             {
                 Proxy = sp.GetRequiredService<PooledWebProxyProvider>()
@@ -130,13 +131,9 @@ public class Program
             proxyPoolWithCredentials, Options.Create(inventoryProxyPoolSettings));
 
         services.AddRefitClient<ISteamInventoriesClient>(generalSteamRefitClientSettings)
-            .ConfigureHttpClient(c =>
-            {
-                c.BaseAddress = new Uri("https://steamcommunity.com");
-                c.Timeout = TimeSpan.FromSeconds(10);
-            })
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
+            .AddPolicyHandler(ISteamInventoriesClient.SteamInventoriesRetryPolicy)
+            .AddPolicyHandler(ISteamInventoriesClient.SteamInventoriesTimeoutPolicy)
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { Proxy = inventoryProxyPool });
     }
-
-    //services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 }
