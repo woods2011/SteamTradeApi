@@ -16,7 +16,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
 
 
     [Fact]
-    public async Task Put_ReturnsBadGateway_WhenSteamContinueToReturn429()
+    public async Task Post_ReturnsBadGateway_WhenSteamContinueToReturn429()
     {
         //Arrange
         var (steam64Id, appId) = (76561198000000000L, 730);
@@ -27,7 +27,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
             .Respond(HttpStatusCode.TooManyRequests);
 
         //Act
-        var act = () => _factory.Client.PutAsync($"/Inventory/{steam64Id}/{appId}", null);
+        var act = () => _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
         (await act()).StatusCode.Should().Be(HttpStatusCode.BadGateway);
@@ -35,7 +35,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
     }
     
     [Fact]
-    public async Task Put_ReturnsNotFound_WhenSteamInventoryIsNotFoundOrHided()
+    public async Task Post_ReturnsNotFound_WhenSteamInventoryIsNotFoundOrHided()
     {
         //Arrange
         var (steam64Id, appId) = (76561198000000000L, 730);
@@ -51,9 +51,9 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
             .Respond("application/json", "null");
 
         //Act
-        var actNotFoundRequest = () => _factory.Client.PutAsync($"/Inventory/{steam64Id}/{appId}", null);
-        var actForbiddenRequest = () => _factory.Client.PutAsync($"/Inventory/{steam64Id}/{appId}", null);
-        var actNullJsonResponse = () => _factory.Client.PutAsync($"/Inventory/{steam64Id}/{appId}", null);
+        var actNotFoundRequest = () => _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        var actForbiddenRequest = () => _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        var actNullJsonResponse = () => _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
         (await actNotFoundRequest()).StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -65,7 +65,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
     }
     
     [Fact]
-    public async Task B_Put_ReturnsNoContent_WhenInventoryExists()
+    public async Task B_Post_ReturnsNoContent_WhenInventoryExists()
     {
         //Arrange
         var (steam64Id, appId) = (76561198000000000L, 730);
@@ -76,7 +76,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
             .Respond("application/json", serializedSteamSdkInventory);
 
         //Act
-        var actLoadUpdate = () => _factory.Client.PutAsync($"/Inventory/{steam64Id}/{appId}", null);
+        var actLoadUpdate = () => _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
         var loadNoContentResponse = await actLoadUpdate();
@@ -85,7 +85,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
     }
 
     [Fact]
-    public async Task A_Put_ReturnsCreated_WhenInventoryLoadedFirstTime()
+    public async Task A_Post_ReturnsCreated_WhenInventoryLoadedFirstTime()
     {
         //Arrange
         var (steam64Id, appId) = (76561198000000000L, 730);
@@ -96,7 +96,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
             .Respond("application/json", serializedSteamSdkInventory);
 
         //Act
-        var actLoadInsert = () => _factory.Client.PutAsync($"/Inventory/{steam64Id}/{appId}", null);
+        var actLoadInsert = () => _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
         var loadCreatedResponse = await actLoadInsert();

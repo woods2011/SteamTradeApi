@@ -26,7 +26,7 @@ public class GetInventoryController : IClassFixture<InventoryControllerWebApplic
         _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2?count=5000")
             .Respond("application/json", serializedSteamSdkInventory);
-        await _factory.Client.PutAsync($"/Inventory/{steam64Id}/{appId}", null);
+        await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Act
         var act = () => _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}");
