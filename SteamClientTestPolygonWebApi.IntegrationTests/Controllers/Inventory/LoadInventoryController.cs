@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using AutoFixture;
 using FluentAssertions;
 using RichardSzalay.MockHttp;
 using SteamClientTestPolygonWebApi.IntegrationTests.Controllers.Inventory.Setup;
@@ -10,16 +11,20 @@ namespace SteamClientTestPolygonWebApi.IntegrationTests.Controllers.Inventory;
 public class LoadInventoryController : IClassFixture<InventoryControllerWebApplicationFactory>
 {
     private readonly InventoryControllerWebApplicationFactory _factory;
+    private readonly Fixture _fixture;
 
-    public LoadInventoryController(InventoryControllerWebApplicationFactory factory) =>
+    public LoadInventoryController(InventoryControllerWebApplicationFactory factory)
+    {
         _factory = factory;
+        _fixture = factory.Fixture;
+    }
 
 
     [Fact]
-    public async Task Post_ReturnsBadGateway_WhenSteamContinueToReturn429()
+    public async Task Post_ReturnsBadGateway_WhenSteamContinueToReturn429() // ToDo
     {
         //Arrange
-        var (steam64Id, appId) = (76561198000000000L, 730);
+        var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         var totalRetryCountPlusOne = 4;
         var request = _factory.MockHttp
@@ -38,7 +43,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
     public async Task Post_ReturnsNotFound_WhenSteamInventoryIsNotFoundOrHided()
     {
         //Arrange
-        var (steam64Id, appId) = (76561198000000000L, 730);
+        var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         var notFoundRequest = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2?count=5000")

@@ -5,7 +5,7 @@ using SteamClientTestPolygonWebApi.Domain.Entities;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.Entities;
 
-namespace SteamClientTestPolygonWebApi.Application.Mappers.ManualToDomain;
+namespace SteamClientTestPolygonWebApi.Application.Features.Inventory.Mapping.ManualToDomain;
 
 public static class MapExternalInventoryRepresentation
 {

@@ -3,7 +3,7 @@ using FluentAssertions;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker.ProxySources;
 
-namespace SteamClientTestPolygonWebApi.Tests.ProxyTests;
+namespace SteamClientTestPolygonWebApi.UnitTests.ProxyTests;
 
 public class FileLoaderProxyTests
 {
@@ -29,18 +29,16 @@ public class FileLoaderProxyTests
 
         var mockFileSystem = new MockFileSystem();
         mockFileSystem.AddFile($"Files/ProxyPool_{scheme}.txt", new MockFileData(
-            String.Join(Environment.NewLine, lines)
-        ));
-        
-        var sut = new FileProxySource(mockFileSystem) {Scheme = scheme};
+            String.Join(Environment.NewLine, lines)));
+
+        var sut = new FileProxySource(mockFileSystem) { Scheme = scheme };
 
         //Act
         var proxyPool = (await sut.GetProxiesAsync(CancellationToken.None)).ToList();
 
         //Assert
-        proxyPool.Should().HaveSameCount(lines);
         proxyPool.Should().AllSatisfy(uri => uri.Scheme.Should().BeEquivalentTo(scheme));
-        //proxyPool.Should().Equal(lines, (uri, line) => uri.ToString().Contains(line));
+        proxyPool.Should().HaveSameCount(lines);
         for (var i = 0; i < lines.Length; i++) proxyPool[i].ToString().Should().Contain(lines[i]);
     }
 }

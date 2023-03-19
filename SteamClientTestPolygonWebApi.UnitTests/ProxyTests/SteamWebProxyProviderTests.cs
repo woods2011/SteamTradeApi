@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure;
 
-namespace SteamClientTestPolygonWebApi.Tests.ProxyTests;
+namespace SteamClientTestPolygonWebApi.UnitTests.ProxyTests;
 
 public class SteamWebProxyProviderTests
 {
@@ -24,8 +24,7 @@ public class SteamWebProxyProviderTests
             new("socks5://142.54.235.9:4145")
         };
 
-        var batchSize = 4;
-        var requestsPerProxy = 3;
+        var (batchSize, requestsPerProxy) = (4, 3);
 
         var sut = new PooledWebProxyProvider(initialProxyPool, Options.Create(new ProxyPoolSettings
         {
@@ -40,16 +39,14 @@ public class SteamWebProxyProviderTests
 
         //Assert
         proxyList.Should().NotBeEmpty();
-
+        
         var shouldRespectNumOfAppearances = RepeatCollection(initialProxyPool, requestsPerProxy);
         proxyList.Should().Contain(shouldRespectNumOfAppearances);
-
+        
         var shouldRespectBatching = RepeatCollection(initialProxyPool.Take(batchSize), requestsPerProxy);
         proxyList.Should().ContainInConsecutiveOrder(shouldRespectBatching);
-
-
-        IEnumerable<Uri> RepeatCollection(IEnumerable<Uri> uris, int times) =>
-            Enumerable.Range(0, times)
-                .Aggregate(Enumerable.Empty<Uri>(), (acc, _) => acc.Concat(uris)).ToList();
     }
+
+    private static IEnumerable<Uri> RepeatCollection(IEnumerable<Uri> collection, int times) =>
+        Enumerable.Repeat(collection, times).SelectMany(x => x);
 }

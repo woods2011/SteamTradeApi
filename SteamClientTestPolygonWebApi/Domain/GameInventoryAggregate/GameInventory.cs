@@ -8,8 +8,8 @@ public class GameInventory
     public string OwnerSteam64Id { get; private set; }
     public DateTime LastUpdateTimeUtc { get; private set; }
     public IReadOnlyList<GameInventoryAsset> Assets => _assets.AsReadOnly();
-
-
+    
+    
     private GameInventory(
         int appId,
         string ownerSteam64Id,

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using Mapster;
 using MapsterMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 
 namespace SteamClientTestPolygonWebApi.Application.Features.Inventory.Queries;
 
-public class GetSteamInventoryQuery : IRequest<OneOf<GameInventoryMainProjection, NotFound>>
+public class GetSteamInventoryQuery : IRequest<OneOf<GameInventoryFullProjection, NotFound>>
 {
     [Required]
     public int AppId { get; init; }
@@ -20,8 +21,8 @@ public class GetSteamInventoryQuery : IRequest<OneOf<GameInventoryMainProjection
     public long Steam64Id { get; init; }
 }
 
-public class GetSteamInventoryQueryHandler
-    : IRequestHandler<GetSteamInventoryQuery, OneOf<GameInventoryMainProjection, NotFound>>
+public class GetSteamInventoryQueryHandler :
+    IRequestHandler<GetSteamInventoryQuery, OneOf<GameInventoryFullProjection, NotFound>>
 {
     private readonly SteamTradeApiDbContext _dbCtx;
     private readonly IMapper _mapper;
@@ -40,7 +41,8 @@ public class GetSteamInventoryQueryHandler
         _logger = logger;
     }
 
-    public async Task<OneOf<GameInventoryMainProjection, NotFound>> Handle(GetSteamInventoryQuery query,
+    public async Task<OneOf<GameInventoryFullProjection, NotFound>> Handle(
+        GetSteamInventoryQuery query,
         CancellationToken token)
     {
         var (steam64Id, appId) = (query.Steam64Id.ToString(), query.AppId);
@@ -48,25 +50,23 @@ public class GetSteamInventoryQueryHandler
         var entryKey = $"InventoryMainProjection-{query.Steam64Id}{query.AppId}";
         var inventorySerialized = await _cache.GetStringAsync(entryKey, token);
 
-        GameInventoryMainProjection? inventoryMainProjection = null;
-        if (inventorySerialized != null)
-            inventoryMainProjection = JsonSerializer.Deserialize<GameInventoryMainProjection>(inventorySerialized);
-        if (inventoryMainProjection != null) return inventoryMainProjection;
+        var inventoryMainProjection = inventorySerialized is not null
+            ? JsonSerializer.Deserialize<GameInventoryFullProjection>(inventorySerialized)
+            : null;
 
-        // change to .ProjectToType<GameInventoryMainProjection>()
-        var inventory = await _dbCtx.Inventories
-            .AsNoTracking()
+        if (inventoryMainProjection is not null) return inventoryMainProjection;
+
+        inventoryMainProjection = await _dbCtx.Inventories
             .Where(inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId)
+            .ProjectToType<GameInventoryFullProjection>()
             .FirstOrDefaultAsync(token);
 
-        if (inventory == null) return new NotFound();
-
-        inventoryMainProjection = _mapper.Map<GameInventoryMainProjection>(inventory);
+        if (inventoryMainProjection is null) return new NotFound();
 
         var cacheOptions = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(20));
         var serializedInventory = JsonSerializer.Serialize(inventoryMainProjection);
         await _cache.SetStringAsync(entryKey, serializedInventory, cacheOptions, token);
 
-        return _mapper.Map<GameInventoryMainProjection>(inventoryMainProjection);
+        return inventoryMainProjection;
     }
 }

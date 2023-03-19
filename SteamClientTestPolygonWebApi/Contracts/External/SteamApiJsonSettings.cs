@@ -25,12 +25,10 @@ namespace SteamClientTestPolygonWebApi.Contracts.External
 
     public static class SteamApiJsonSettings
     {
-        public static JsonSerializerOptions Default => new()
-        {
-            PropertyNamingPolicy = SteamNamingPolicy.Instance
-        };
+        public static JsonSerializerOptions Default => 
+            new() { PropertyNamingPolicy = SteamNamingPolicy.Instance };
     }
-    
+
     public class EmptyStringToEmptyArrayConverter<T> : JsonConverter<IEnumerable<T>>
     {
         public override IEnumerable<T> Read(ref Utf8JsonReader reader, Type typeToConvert,
@@ -44,7 +42,7 @@ namespace SteamClientTestPolygonWebApi.Contracts.External
             {
                 if (reader.TokenType == JsonTokenType.EndArray) return list;
                 var item = JsonSerializer.Deserialize<T>(ref reader, options);
-                if (item != null) list.Add(item);
+                if (item is not null) list.Add(item);
             }
 
             return list;
@@ -52,7 +50,7 @@ namespace SteamClientTestPolygonWebApi.Contracts.External
 
         public override void Write(Utf8JsonWriter writer, IEnumerable<T> value,
             JsonSerializerOptions options) => JsonSerializer.Serialize(writer, value, options);
-    
+
         // public override void Write(Utf8JsonWriter writer, IEnumerable<T> value,
         //     JsonSerializerOptions options)
         // {

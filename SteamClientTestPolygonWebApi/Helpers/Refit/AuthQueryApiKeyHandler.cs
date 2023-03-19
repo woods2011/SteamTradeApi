@@ -21,7 +21,7 @@ public class AuthQueryApiKeyHandler : DelegatingHandler
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        if (request.RequestUri == null)
+        if (request.RequestUri is null)
             return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
         var uriBuilder = new UriBuilder(request.RequestUri);

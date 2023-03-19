@@ -25,8 +25,8 @@ public static class SteamApiResponseToOneOfMapper
 }
 
 [GenerateOneOf]
-public partial class SteamClientResult<TContent> 
-    : OneOfBase<TContent, ConnectionToSteamError, SteamError> where TContent : class? { }
+public partial class SteamClientResult<TContent> : OneOfBase<TContent, ConnectionToSteamError, SteamError> 
+    where TContent : class? { }
 
 
 public record struct ConnectionToSteamError;

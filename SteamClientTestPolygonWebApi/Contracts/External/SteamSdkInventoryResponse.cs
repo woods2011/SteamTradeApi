@@ -1,91 +1,32 @@
 ﻿namespace SteamClientTestPolygonWebApi.Contracts.External;
 
-public class SteamSdkInventoryResponse
-{
-    public IReadOnlyList<SteamSdkAssetResponse> Assets { get; init; }
-    public IReadOnlyList<SteamSdkDescriptionResponse> Descriptions { get; init; }
+public record SteamSdkInventoryResponse(
+    IReadOnlyList<SteamSdkAssetResponse> Assets,
+    IReadOnlyList<SteamSdkDescriptionResponse> Descriptions,
+    int TotalInventoryCount);
 
-    public int TotalInventoryCount { get; init; }
-}
+public record SteamSdkAssetResponse(
+    int AppId,
+    string ContextId,
+    string AssetId,
+    string ClassId,
+    string InstanceId,
+    string Amount);
 
-public class SteamSdkAssetResponse
-{
-    public int AppId { get; init; }
+public record SteamSdkDescriptionResponse(
+    int AppId,
+    string ClassId,
+    string InstanceId,
+    string IconUrl,
+    IReadOnlyList<SteamSdkNestedDescriptionResponse>? Descriptions,
+    int Tradable,
+    string MarketHashName,
+    int Marketable,
+    IReadOnlyList<SteamSdkItemTagResponse> Tags) { }
 
-    public string ContextId { get; init; }
+public record SteamSdkNestedDescriptionResponse(string? Type, string Value);
 
-    public string AssetId { get; init; }
-
-    public string ClassId { get; init; }
-    public string InstanceId { get; init; }
-
-    public string Amount { get; init; }
-}
-
-public class SteamSdkDescriptionResponse
-{
-    public int AppId { get; init; }
-
-    public string ClassId { get; init; }
-
-    public string InstanceId { get; init; }
-
-    // public int Currency { get; init; }
-
-    // public string BackgroundColor { get; init; }
-
-    public string IconUrl { get; init; }
-
-    // public string IconUrlLarge { get; init; }
-
-    public IReadOnlyList<SteamSdkNestedDescriptionResponse>? Descriptions { get; init; }
-
-    public int Tradable { get; init; }
-
-    // public IEnumerable<SteamSdkNestedDescriptionResponse>? OwnerDescriptions { get; init; }
-
-    // public string Name { get; init; }
-
-    // public string NameColor { get; init; }
-
-    // public string Type { get; init; }
-
-    // public string MarketName { get; init; }
-
-    public string MarketHashName { get; init; }
-
-    // public int Commodity { get; init; }
-
-    // public int MarketTradableRestriction { get; init; }
-
-    // public int MarketMarketableRestriction { get; init; }
-
-    public int Marketable { get; init; }
-
-    public IReadOnlyList<SteamSdkItemTagResponse> Tags { get; init; }
-}
-
-public class SteamSdkNestedDescriptionResponse
-{
-    public string? Type { get; init; }
-
-    public string Value { get; init; }
-
-    // public string Color { get; init; }
-}
-
-public class SteamSdkItemTagResponse
-{
-    public string Category { get; init; }
-
-    public string InternalName { get; init; }
-
-    // public string LocalizedCategoryName { get; init; }
-
-    // public string LocalizedTagName { get; init; }
-
-    // public string Color { get; init; }
-}
+public record SteamSdkItemTagResponse(string Category, string InternalName);
 
 
 // {

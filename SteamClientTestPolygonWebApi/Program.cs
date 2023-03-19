@@ -1,4 +1,5 @@
 using System.Net;
+using System.Reflection;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -34,8 +35,7 @@ public class Program
         builder.Services.AddDbContext<SteamTradeApiDbContext>(
             options => options.UseSqlite("Data Source=Database/SteamTradeApiDb.db"));
         
-        builder.Services.AddSingleton(TypeAdapterConfig.GlobalSettings);
-        builder.Services.AddScoped<IMapper, ServiceMapper>();
+        AddMapster(builder);
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
         AddProxyInfrastructure(builder);
         AddSteamClients(builder);
@@ -58,6 +58,14 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
         app.Run();
+    }
+
+    private static void AddMapster(WebApplicationBuilder builder)
+    {
+        var config = TypeAdapterConfig.GlobalSettings;
+        config.Scan(Assembly.GetExecutingAssembly());
+        builder.Services.AddSingleton(config);
+        builder.Services.AddScoped<IMapper, ServiceMapper>();
     }
 
     private static void AddProxyInfrastructure(WebApplicationBuilder builder)

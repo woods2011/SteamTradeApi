@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using AutoFixture;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
@@ -15,6 +16,7 @@ public class InventoryWebAppFactoryCollection : ICollectionFixture<InventoryCont
 
 public class InventoryControllerWebApplicationFactory : GeneralWebApplicationFactory
 {
+    public Fixture Fixture { get; } = new();
     public MockHttpMessageHandler MockHttp { get; } = new();
 
     public string SerializedSteamSdkInventoryResponseExample { get; } =

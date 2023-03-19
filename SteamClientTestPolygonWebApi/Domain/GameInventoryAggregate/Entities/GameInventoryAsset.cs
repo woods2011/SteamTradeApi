@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.Entities;
 
 public class GameInventoryAsset
@@ -11,7 +13,7 @@ public class GameInventoryAsset
     public bool IsMarketable { get; private set; }
     public string InstanceId { get; private set; }
 
-
+    
     private GameInventoryAsset(
         string assetId,
         int appId,
@@ -42,7 +44,7 @@ public class GameInventoryAsset
         bool isMarketable,
         string instanceId)
     {
-        if (isTradable && tradeCooldownUntilUtc != null)
+        if (isTradable && tradeCooldownUntilUtc is not null)
             throw new ArgumentException("Asset cannot be tradable and have a trade cooldown at the same time.");
 
         return new GameInventoryAsset(

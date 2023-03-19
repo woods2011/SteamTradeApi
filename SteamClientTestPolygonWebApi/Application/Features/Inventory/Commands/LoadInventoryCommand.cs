@@ -5,8 +5,8 @@ using Microsoft.Extensions.Caching.Distributed;
 using OneOf;
 using OneOf.Types;
 using SteamClientTestPolygonWebApi.Application.Common;
+using SteamClientTestPolygonWebApi.Application.Features.Inventory.Mapping.ManualToDomain;
 using SteamClientTestPolygonWebApi.Application.Features.Inventory.TradeCooldownParsers;
-using SteamClientTestPolygonWebApi.Application.Mappers.ManualToDomain;
 using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
@@ -52,15 +52,18 @@ public class LoadSteamInventoryCommandHandler : IRequestHandler<LoadInventoryCom
         _logger = logger;
     }
 
+
     public async Task<LoadInventoryResult> Handle(LoadInventoryCommand command, CancellationToken token)
     {
         var (steam64Id, appId) = (command.Steam64Id, command.AppId);
 
         var response = await _steamInventoriesClient.GetInventory(steam64Id, appId, command.MaxCount);
+
         return await response.Match<Task<LoadInventoryResult>>(
             async content => content is null ? new NotFound() : await UpsertInventory(content),
             connectionToSteamError => Task.FromResult<LoadInventoryResult>(connectionToSteamError),
-            steamError => steamError.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Forbidden
+            steamError => steamError.StatusCode
+                is HttpStatusCode.NotFound or HttpStatusCode.Forbidden
                 ? Task.FromResult<LoadInventoryResult>(new NotFound())
                 : Task.FromResult<LoadInventoryResult>(steamError));
 

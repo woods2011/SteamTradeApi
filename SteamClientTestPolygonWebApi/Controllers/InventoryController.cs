@@ -21,13 +21,13 @@ namespace SteamClientTestPolygonWebApi.Controllers
         }
 
         [HttpGet("{Steam64Id}/{AppId}")]
-        [ProducesResponseType(typeof(GameInventoryMainProjection), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GameInventoryFullProjection), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GameInventoryMainProjection>> Get(GetSteamInventoryQuery query,
+        public async Task<ActionResult<GameInventoryFullProjection>> Get(GetSteamInventoryQuery query,
             CancellationToken token)
         {
             var inventoryResponse = await _mediatr.Send(query, token);
-            return inventoryResponse.Match<ActionResult<GameInventoryMainProjection>>(
+            return inventoryResponse.Match<ActionResult<GameInventoryFullProjection>>(
                 inventory => Ok(inventory),
                 notFound => NotFound("Inventory not found, Please load it first"));
         }

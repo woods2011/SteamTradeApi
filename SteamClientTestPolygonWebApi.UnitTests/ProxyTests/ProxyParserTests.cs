@@ -1,94 +1,94 @@
 ﻿using FluentAssertions;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker;
 
-namespace SteamClientTestPolygonWebApi.Tests.ProxyTests;
+namespace SteamClientTestPolygonWebApi.UnitTests.ProxyTests;
 
 public class ProxyParserTests
 {
-    //generate tests for proxyparser
-
-    [InlineData(SupportedProxiesSchemes.Http)]
-    [InlineData(SupportedProxiesSchemes.Socks4)]
-    [InlineData(SupportedProxiesSchemes.Socks5)]
     [Theory]
-    public void Parse_ShouldReturnUri_WhenLineContainsItInRightFormatWithScheme(string proxyType)
+    [MemberData(nameof(AllSupportedProxiesSchemesData))]
+    public void Parse_ShouldReturnUri_WhenLineContainsItInRightFormatWithScheme(string proxyScheme)
     {
         //Arrange
-        var proxyStr = $"{proxyType}://155.94.178.38:16666";
-        
+        var proxyStr = $"{proxyScheme}://155.94.178.38:16666";
+
         //Act
         var uri = ProxyParser.Parse(proxyStr);
-        
+
         //Assert
-        uri.Scheme.Should().BeEquivalentTo(proxyType);
+        uri.Scheme.Should().BeEquivalentTo(proxyScheme);
         uri.ToString().Should().ContainEquivalentOf(proxyStr);
     }
-    
-    [InlineData(SupportedProxiesSchemes.Http)]
-    [InlineData(SupportedProxiesSchemes.Socks4)]
-    [InlineData(SupportedProxiesSchemes.Socks5)]
+
+
     [Theory]
-    public void Parse_ShouldReturnUri_WhenLineContainsItInRightFormatWithoutScheme(string proxyType)
+    [MemberData(nameof(AllSupportedProxiesSchemesData))]
+    public void Parse_ShouldReturnUri_WhenLineContainsItInRightFormatWithoutScheme(string proxyScheme)
     {
         //Arrange
         var proxyStr = "155.94.178.38:16666";
-        
+
         //Act
-        var uri = ProxyParser.Parse(proxyStr, proxyType);
-        
+        var uri = ProxyParser.Parse(proxyStr, proxyScheme);
+
         //Assert
-        uri.Scheme.Should().BeEquivalentTo(proxyType);
+        uri.Scheme.Should().BeEquivalentTo(proxyScheme);
         uri.ToString().Should().ContainEquivalentOf(proxyStr);
     }
-    
+
+
+    [Theory]
+    [MemberData(nameof(AllSupportedProxiesSchemesData))]
+    public void Parse_ShouldReturnUri_WhenSchemesAreIdentical(string scheme)
+    {
+        //Arrange
+        var proxyStr = $"{scheme}://155.94.178.38:16666";
+
+        //Act
+        var uri = ProxyParser.Parse(proxyStr, scheme);
+
+        //Assert
+        uri.Scheme.Should().BeEquivalentTo(scheme);
+        uri.ToString().Should().ContainEquivalentOf(proxyStr);
+    }
+
+
     [Fact]
     public void Parse_ShouldThrowArgumentException_WhenSchemeNotSpecified()
     {
         //Arrange
         var proxyStr = "155.94.178.38:16666";
-    
+
         //Act
         var action = () => ProxyParser.Parse(proxyStr);
-        
+
         //Assert
         action.Should().Throw<ArgumentException>().WithMessage("Uri is in the wrong format");
     }
-    
-    [InlineData("http", "socks4")]
-    [InlineData("http", "socks5")]
-    [InlineData("socks4", "http")]
-    [InlineData("socks4", "socks5")]
-    [InlineData("socks5", "http")]
-    [InlineData("socks5", "socks4")]
+
+
     [Theory]
+    [MemberData(nameof(DifferentProxiesSchemesPairs))]
     public void Parse_ShouldThrowArgumentException_WhenSchemesAreDifferent(string implicitScheme, string explicitScheme)
     {
         //Arrange
-        var proxyStr = $"{implicitScheme}{Uri.SchemeDelimiter}155.94.178.38:16666";
-    
+        var proxyStr = $"{implicitScheme}://155.94.178.38:16666";
+
         //Act
         var act = () => ProxyParser.Parse(proxyStr, explicitScheme);
-        
+
         //Assert
         var argumentException = act.Should().Throw<ArgumentException>().Which;
         argumentException.Message.Should().ContainAll(implicitScheme, explicitScheme);
     }
-    
-    
-    [InlineData("http")]
-    [InlineData("socks4")]
-    [InlineData("socks5")]
-    [Theory]
-    public void Parse_ShouldReturnUri_WhenSchemesAreIdentical(string scheme)
-    {
-        //Arrange
-        var proxyStr = $"{scheme}{Uri.SchemeDelimiter}155.94.178.38:16666";
-    
-        //Act
-        var uri = ProxyParser.Parse(proxyStr, scheme);
-        
-        //Assert
-        uri.Scheme.Should().BeEquivalentTo(scheme);
-        uri.ToString().Should().ContainEquivalentOf(proxyStr);
-    }
+
+
+    public static IEnumerable<object[]> AllSupportedProxiesSchemesData =>
+        SupportedProxiesSchemes.All.Select(scheme => new object[] { scheme });
+
+    public static IEnumerable<object[]> DifferentProxiesSchemesPairs =>
+        from scheme1 in SupportedProxiesSchemes.All
+        from scheme2 in SupportedProxiesSchemes.All
+        where scheme1 != scheme2
+        select new object[] { scheme1, scheme2 };
 }
