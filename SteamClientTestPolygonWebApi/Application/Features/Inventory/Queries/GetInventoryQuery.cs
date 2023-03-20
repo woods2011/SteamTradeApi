@@ -60,7 +60,7 @@ public class GetSteamInventoryQueryHandler :
             .Where(inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId)
             .ProjectToType<GameInventoryFullProjection>()
             .FirstOrDefaultAsync(token);
-
+        
         if (inventoryMainProjection is null) return new NotFound();
 
         var cacheOptions = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(20));

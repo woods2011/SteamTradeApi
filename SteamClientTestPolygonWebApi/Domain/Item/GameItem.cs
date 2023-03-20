@@ -1,4 +1,4 @@
-namespace SteamClientTestPolygonWebApi.Domain.Entities;
+namespace SteamClientTestPolygonWebApi.Domain.Item;
 
 public class GameItem
 {
@@ -7,6 +7,8 @@ public class GameItem
     public string IconUrl { get; private set; }
     public string ClassId { get; private set; }
 
+    public PriceInfo? PriceInfo { get; set; } = null;
+    
 
     private GameItem(
         int appId,

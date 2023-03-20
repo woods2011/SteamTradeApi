@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using AutoFixture;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using RichardSzalay.MockHttp;
 using SteamClientTestPolygonWebApi.IntegrationTests.Controllers.Inventory.Setup;
 
@@ -38,7 +39,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
         (await act()).StatusCode.Should().Be(HttpStatusCode.BadGateway);
         _factory.MockHttp.GetMatchCount(request).Should().Be(totalRetryCountPlusOne);
     }
-    
+
     [Fact]
     public async Task Post_ReturnsNotFound_WhenSteamInventoryIsNotFoundOrHided()
     {
@@ -68,13 +69,13 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
         _factory.MockHttp.GetMatchCount(forbiddenRequest).Should().Be(1);
         _factory.MockHttp.GetMatchCount(nullJsonResponse).Should().Be(1);
     }
-    
+
     [Fact]
     public async Task B_Post_ReturnsNoContent_WhenInventoryExists()
     {
         //Arrange
         var (steam64Id, appId) = (76561198000000000L, 730);
-        
+
         var serializedSteamSdkInventory = _factory.SerializedSteamSdkInventoryResponseExample;
         var secondRequest = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2?count=5000")
@@ -94,7 +95,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
     {
         //Arrange
         var (steam64Id, appId) = (76561198000000000L, 730);
-        
+
         var serializedSteamSdkInventory = _factory.SerializedSteamSdkInventoryResponseExample;
         var firstRequest = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2?count=5000")
@@ -108,7 +109,7 @@ public class LoadInventoryController : IClassFixture<InventoryControllerWebAppli
         loadCreatedResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         _factory.MockHttp.GetMatchCount(firstRequest).Should().Be(1);
     }
-
+    
     // await using var dbContextFactory = _factory.CreateDbContextFactory();
-    // await using var dbContext = dbContextFactory.CreateDbContext();
+    // var dbContext = dbContextFactory.DbCtx;
 }

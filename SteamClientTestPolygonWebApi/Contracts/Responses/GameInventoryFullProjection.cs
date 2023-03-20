@@ -18,16 +18,21 @@ public record GameInventoryFullProjection(
 
 public record GameInventoryAssetFullProjection(
     string AssetId,
-    int AppId,
-    string ItemMarketHashName,
-    string OwnerSteam64Id,
+    GameItemFullProjection GameItem,
     bool IsTradable,
     DateTime? TradeCooldownUntilUtc,
     bool IsMarketable,
     string InstanceId);
 
-public record GameItemFullProjection(
-    int AppId,
-    string MarketHashName,
-    string IconUrl,
-    string ClassId);
+public class GameItemFullProjection
+{
+    public string MarketHashName { get; init; } = null!;
+    public string IconUrl { get; init; } = null!;
+    public string ClassId { get; init; } = null!;
+    public PriceInfoFullProjection? PriceInfo { get; init; }
+}
+
+public record PriceInfoFullProjection(
+    decimal LowestMarketPriceUsd,
+    decimal? MedianMarketPriceUsd,
+    DateTime LastUpdateUtc);

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SteamClientTestPolygonWebApi.Domain.Entities;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
+using SteamClientTestPolygonWebApi.Domain.Item;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.Persistence.Configurations;
 
@@ -32,10 +32,10 @@ public class InventoryConfigurations : IEntityTypeConfiguration<GameInventory>
         {
             assetBuilder.ToTable("GameInventoryAssets");
 
-            assetBuilder.HasKey(asset => new { asset.AssetId , asset.OwnerSteam64Id, asset.AppId });
+            assetBuilder.HasKey(asset => new { asset.AssetId, asset.OwnerSteam64Id, asset.AppId });
 
             assetBuilder.WithOwner().HasForeignKey(asset => new { asset.OwnerSteam64Id, asset.AppId });
-            assetBuilder.HasOne<GameItem>().WithMany()
+            assetBuilder.HasOne(asset => asset.GameItem).WithMany()
                 .HasForeignKey(asset => new { asset.AppId, asset.ItemMarketHashName })
                 .OnDelete(DeleteBehavior.Cascade);
 

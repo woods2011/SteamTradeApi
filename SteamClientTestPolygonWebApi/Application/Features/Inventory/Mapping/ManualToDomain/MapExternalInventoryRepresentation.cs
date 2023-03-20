@@ -1,9 +1,9 @@
 ﻿using SteamClientTestPolygonWebApi.Application.Features.Inventory.Commands;
 using SteamClientTestPolygonWebApi.Application.Features.Inventory.TradeCooldownParsers;
 using SteamClientTestPolygonWebApi.Contracts.External;
-using SteamClientTestPolygonWebApi.Domain.Entities;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.Entities;
+using SteamClientTestPolygonWebApi.Domain.Item;
 
 namespace SteamClientTestPolygonWebApi.Application.Features.Inventory.Mapping.ManualToDomain;
 
@@ -24,8 +24,8 @@ public static class MapExternalInventoryRepresentation
         return GameInventoryAsset.Create(
             assetId: asset.AssetId,
             appId: asset.AppId,
-            itemMarketHashName: itemDescription.MarketHashName,
             ownerSteam64Id: steam64Id.ToString(),
+            itemMarketHashName: itemDescription.MarketHashName,
             isTradable: isTradable,
             tradeCooldownUntilUtc: tradeCooldownUntilUtc,
             isMarketable: isMarketable,

@@ -1,9 +1,9 @@
 ﻿using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using SteamClientTestPolygonWebApi.Domain.Entities;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.Entities;
+using SteamClientTestPolygonWebApi.Domain.Item;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 

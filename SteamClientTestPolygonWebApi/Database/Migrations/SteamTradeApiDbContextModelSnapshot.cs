@@ -15,7 +15,7 @@ namespace SteamClientTestPolygonWebApi.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "7.0.3");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.15");
 
             modelBuilder.Entity("SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.GameInventory", b =>
                 {
@@ -34,7 +34,7 @@ namespace SteamClientTestPolygonWebApi.Migrations
                     b.ToTable("GameInventories", (string)null);
                 });
 
-            modelBuilder.Entity("SteamClientTestPolygonWebApi.Domain.GameItemAggregate.GameItem", b =>
+            modelBuilder.Entity("SteamClientTestPolygonWebApi.Domain.Item.GameItem", b =>
                 {
                     b.Property<int>("AppId")
                         .HasColumnType("INTEGER");
@@ -100,7 +100,7 @@ namespace SteamClientTestPolygonWebApi.Migrations
 
                             b1.ToTable("GameInventoryAssets", (string)null);
 
-                            b1.HasOne("SteamClientTestPolygonWebApi.Domain.GameItemAggregate.GameItem", null)
+                            b1.HasOne("SteamClientTestPolygonWebApi.Domain.Item.GameItem", "GameItem")
                                 .WithMany()
                                 .HasForeignKey("AppId", "ItemMarketHashName")
                                 .OnDelete(DeleteBehavior.Cascade)
@@ -108,9 +108,41 @@ namespace SteamClientTestPolygonWebApi.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("OwnerSteam64Id", "AppId");
+
+                            b1.Navigation("GameItem");
                         });
 
                     b.Navigation("Assets");
+                });
+
+            modelBuilder.Entity("SteamClientTestPolygonWebApi.Domain.Item.GameItem", b =>
+                {
+                    b.OwnsOne("SteamClientTestPolygonWebApi.Domain.Item.PriceInfo", "PriceInfo", b1 =>
+                        {
+                            b1.Property<int>("GameItemAppId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<string>("GameItemMarketHashName")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<DateTime>("LastUpdateUtc")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("LowestMarketPriceUsd")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal?>("MedianMarketPriceUsd")
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("GameItemAppId", "GameItemMarketHashName");
+
+                            b1.ToTable("GameItems");
+
+                            b1.WithOwner()
+                                .HasForeignKey("GameItemAppId", "GameItemMarketHashName");
+                        });
+
+                    b.Navigation("PriceInfo");
                 });
 #pragma warning restore 612, 618
         }
