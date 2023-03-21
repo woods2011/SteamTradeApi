@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using SteamClientTestPolygonWebApi.Domain.Item;
 
 namespace SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.Entities;
@@ -10,7 +9,7 @@ public class GameInventoryAsset
     public int AppId { get; private set; }
     public string ItemMarketHashName { get; private set; }
 
-    public GameItem GameItem { get; private set; }
+    public GameItem GameItem { get; private set; } = null!;
 
     public bool IsTradable { get; private set; }
     public DateTime? TradeCooldownUntilUtc { get; private set; }

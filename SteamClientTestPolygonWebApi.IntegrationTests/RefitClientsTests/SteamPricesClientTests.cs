@@ -3,7 +3,7 @@ using AutoFixture.Xunit2;
 using FluentAssertions;
 using Refit;
 using RichardSzalay.MockHttp;
-using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
+using SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
 
 namespace SteamClientTestPolygonWebApi.IntegrationTests.RefitClientsTests;
 
@@ -24,7 +24,7 @@ public class SteamPricesClientTests
         var api = RestService.For<ISteamPricesClient>(httpClient);
 
         // Act
-        var result = await api.GetItemLowestMarketPrice(appId, marketHashName);
+        var result = await api.GetItemLowestMarketPriceUsd(appId, marketHashName);
 
         // Assert
         mockHttp.GetMatchCount(request).Should().Be(1);

@@ -6,7 +6,7 @@ namespace SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
 
 public static class SteamApiResponseToOneOfMapper
 {
-    public static async Task<SteamClientResult<TContent?>>
+    public static async Task<SteamServiceResult<TContent?>>
         Map<TContent>(Func<Task<ApiResponse<TContent>>> responseFactory) where TContent : class
     {
         try
@@ -25,8 +25,8 @@ public static class SteamApiResponseToOneOfMapper
 }
 
 [GenerateOneOf]
-public partial class SteamClientResult<TContent> : OneOfBase<TContent, ConnectionToSteamError, SteamError> 
-    where TContent : class? { }
+public partial class SteamServiceResult<TContent> : 
+    OneOfBase<TContent, ConnectionToSteamError, SteamError> where TContent : class? { }
 
 
 public record struct ConnectionToSteamError;

@@ -12,7 +12,7 @@ using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 
 namespace SteamClientTestPolygonWebApi.Application.Features.Inventory.Queries;
 
-public class GetSteamInventoryQuery : IRequest<OneOf<GameInventoryFullProjection, NotFound>>
+public class GetInventoryFullQuery : IRequest<OneOf<GameInventoryFullProjection, NotFound>>
 {
     [Required]
     public int AppId { get; init; }
@@ -21,19 +21,19 @@ public class GetSteamInventoryQuery : IRequest<OneOf<GameInventoryFullProjection
     public long Steam64Id { get; init; }
 }
 
-public class GetSteamInventoryQueryHandler :
-    IRequestHandler<GetSteamInventoryQuery, OneOf<GameInventoryFullProjection, NotFound>>
+public class GetSteamInventoryFullQueryHandler :
+    IRequestHandler<GetInventoryFullQuery, OneOf<GameInventoryFullProjection, NotFound>>
 {
     private readonly SteamTradeApiDbContext _dbCtx;
     private readonly IMapper _mapper;
     private readonly IDistributedCache _cache;
-    private readonly ILogger<GetSteamInventoryQueryHandler> _logger;
+    private readonly ILogger<GetSteamInventoryFullQueryHandler> _logger;
 
-    public GetSteamInventoryQueryHandler(
+    public GetSteamInventoryFullQueryHandler(
         SteamTradeApiDbContext dbCtx,
         IMapper mapper,
         IDistributedCache cache,
-        ILogger<GetSteamInventoryQueryHandler> logger)
+        ILogger<GetSteamInventoryFullQueryHandler> logger)
     {
         _dbCtx = dbCtx;
         _mapper = mapper;
@@ -41,8 +41,7 @@ public class GetSteamInventoryQueryHandler :
         _logger = logger;
     }
 
-    public async Task<OneOf<GameInventoryFullProjection, NotFound>> Handle(
-        GetSteamInventoryQuery query,
+    public async Task<OneOf<GameInventoryFullProjection, NotFound>> Handle(GetInventoryFullQuery query,
         CancellationToken token)
     {
         var (steam64Id, appId) = (query.Steam64Id.ToString(), query.AppId);

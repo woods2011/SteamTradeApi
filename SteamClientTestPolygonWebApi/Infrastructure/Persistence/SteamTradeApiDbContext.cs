@@ -1,4 +1,5 @@
 ﻿using EFCore.BulkExtensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
@@ -25,7 +26,7 @@ public class SteamTradeApiDbContext : DbContext
             .Where(p => p.IsPrimaryKey())
             .ToList()
             .ForEach(p => p.ValueGenerated = ValueGenerated.Never);
- 
+
         base.OnModelCreating(modelBuilder);
     }
 }
@@ -33,10 +34,17 @@ public class SteamTradeApiDbContext : DbContext
 public static class DbContextExtensions
 {
     public static Task BulkInsertIfNotExistsAsync<T>(
-        this DbContext context, IList<T> entities, CancellationToken ct) where T : class
+        this DbContext context,
+        IList<T> entities,
+        CancellationToken ct) where T : class
     {
         return context.BulkInsertOrUpdateAsync(entities,
-            config => { config.PropertiesToIncludeOnUpdate = new List<string> { "" }; },
+            config =>
+            {
+                config.SqlBulkCopyOptions = SqlBulkCopyOptions.CheckConstraints;
+                // config.UpdateByProperties = new List<string> { nameof(GameItem.AppId), nameof(GameItem.MarketHashName) };
+                config.PropertiesToIncludeOnUpdate = new List<string> { "" };
+            },
             cancellationToken: ct);
     }
 }

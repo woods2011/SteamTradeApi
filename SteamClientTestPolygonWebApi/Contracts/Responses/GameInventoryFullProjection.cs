@@ -1,6 +1,4 @@
-﻿using Mapster;
-
-namespace SteamClientTestPolygonWebApi.Contracts.Responses;
+﻿namespace SteamClientTestPolygonWebApi.Contracts.Responses;
 
 public record GameInventoryFullProjection(
     int AppId,

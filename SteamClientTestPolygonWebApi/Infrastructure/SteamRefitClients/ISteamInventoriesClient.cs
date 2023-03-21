@@ -7,18 +7,16 @@ using Polly.Timeout;
 using Refit;
 using SteamClientTestPolygonWebApi.Contracts.External;
 
-namespace SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
+namespace SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
 
 public interface ISteamInventoriesClient
 {
-    public async Task<SteamClientResult<SteamSdkInventoryResponse?>> GetInventory(
-        long steamId, int appId, int maxCount = 5000) =>
-        await SteamApiResponseToOneOfMapper.Map(() => GetInventoryInternal(steamId, appId, maxCount));
-
-
     [Get("/inventory/{steamId}/{appId}/2?l=english")]
-    internal Task<ApiResponse<SteamSdkInventoryResponse>> GetInventoryInternal(
-        long steamId, int appId, [AliasAs("count")] int maxCount = 5000);
+    internal Task<ApiResponse<SteamSdkInventoryResponse>> GetInventory(
+        long steamId,
+        int appId,
+        [AliasAs("count")] int maxCount = 5000,
+        CancellationToken token = default);
 
 
     // ToDo: Move to a DI, add options
@@ -29,9 +27,5 @@ public interface ISteamInventoriesClient
             .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 3));
 
     public static readonly AsyncTimeoutPolicy<HttpResponseMessage> SteamInventoriesTimeoutPolicy =
-        Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10));
+        Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(7));
 }
-
-// OneOf<SteamSdkInventoryResponse?, ConnectionToSteamError, SteamError>
-
-// https://steamcommunity.com/inventory/76561198015469433/570/2?l=english&count=5000

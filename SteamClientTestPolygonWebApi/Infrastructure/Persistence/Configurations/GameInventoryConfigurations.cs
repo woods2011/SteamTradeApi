@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
-using SteamClientTestPolygonWebApi.Domain.Item;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.Persistence.Configurations;
 
@@ -46,6 +45,8 @@ public class InventoryConfigurations : IEntityTypeConfiguration<GameInventory>
             assetBuilder.Property(asset => asset.OwnerSteam64Id).HasMaxLength(100);
 
             assetBuilder.Property(asset => asset.InstanceId).HasMaxLength(100);
+            
+            assetBuilder.Navigation(asset => asset.GameItem).UsePropertyAccessMode(PropertyAccessMode.Field);
         });
 
         invBuilder.Metadata.FindNavigation(nameof(GameInventory.Assets))!

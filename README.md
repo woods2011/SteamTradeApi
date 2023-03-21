@@ -5,5 +5,5 @@ SteamTradeApi это Web API для работы со Steam в обход Rate  
 ```js
 AppId: 570
 Steam64Id: 76561198015469433
-MaxCount: 5000
+MaxCount: 200
 ```

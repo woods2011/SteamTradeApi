@@ -31,7 +31,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Controllers\Inventory\ExternalApisResponsesJson\SteamSdkInventoryResponseExample.json">
+      <None Update="Controllers\Inventory\Setup\ExternalApisResponsesJson\SteamSdkInventoryResponseExample.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Controllers\Inventory\Setup\ExternalApisResponsesJson\SteamSdkItemPriceResponseExample.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

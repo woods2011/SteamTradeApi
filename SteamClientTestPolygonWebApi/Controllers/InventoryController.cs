@@ -20,15 +20,45 @@ namespace SteamClientTestPolygonWebApi.Controllers
             _logger = logger;
         }
 
+
         [HttpGet("{Steam64Id}/{AppId}")]
         [ProducesResponseType(typeof(GameInventoryFullProjection), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GameInventoryFullProjection>> Get(GetSteamInventoryQuery query,
+        public async Task<ActionResult<GameInventoryFullProjection>> GetFullProjection(
+            GetInventoryFullQuery query,
             CancellationToken token)
         {
             var inventoryResponse = await _mediatr.Send(query, token);
             return inventoryResponse.Match<ActionResult<GameInventoryFullProjection>>(
-                inventory => Ok(inventory),
+                inventoryProjection => inventoryProjection,
+                notFound => NotFound("Inventory not found, Please load it first"));
+        }
+
+
+        [HttpGet("{Steam64Id}/{AppId}/Split")]
+        [ProducesResponseType(typeof(GameInventorySplitProjection), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GameInventorySplitProjection>> GetSplitProjection(
+            GetInventorySplitQuery query,
+            CancellationToken token)
+        {
+            var inventoryResponse = await _mediatr.Send(query, token);
+            return inventoryResponse.Match<ActionResult<GameInventorySplitProjection>>(
+                inventoryProjection => inventoryProjection,
+                notFound => NotFound("Inventory not found, Please load it first"));
+        }
+
+
+        [HttpGet("{Steam64Id}/{AppId}/Tradability")]
+        [ProducesResponseType(typeof(GameInventoryTradabilityProjection), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GameInventoryTradabilityProjection>> GetTradabilityProjection(
+            GetInventoryTradabilityQuery query,
+            CancellationToken token)
+        {
+            var inventoryResponse = await _mediatr.Send(query, token);
+            return inventoryResponse.Match<ActionResult<GameInventoryTradabilityProjection>>(
+                inventoryProjection => inventoryProjection,
                 notFound => NotFound("Inventory not found, Please load it first"));
         }
 
@@ -45,13 +75,26 @@ namespace SteamClientTestPolygonWebApi.Controllers
 
             return loadInventoryResult.Match<ActionResult>(
                 upsertedInventory => upsertedInventory.IsNewlyCreated
-                    ? CreatedAtAction(nameof(Get), new { command.AppId, command.Steam64Id }, null) // mb return inv
+                    ? CreatedAtAction(nameof(GetFullProjection), new { command.AppId, command.Steam64Id }, null) // mb return inv
                     : NoContent(),
                 notFound => NotFound("Inventory not found or Hidden by privacy settings"),
                 connectionToSteamError => StatusCode(StatusCodes.Status504GatewayTimeout,
                     "Our Proxies Servers are temporary unavailable or Steam is down"),
                 steamError => StatusCode(StatusCodes.Status502BadGateway,
                     $"Steam Response Status Code: {steamError.StatusCode}; Error Reason: {steamError.ReasonPhrase}"));
+        }
+
+
+        [HttpPost("{Steam64Id}/{AppId}/Prices")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> LoadPrices(LoadInventoryItemsPricesCommand command, CancellationToken token)
+        {
+            var loadInventoryPricesResult = await _mediatr.Send(command, token);
+
+            return loadInventoryPricesResult.Match<ActionResult>(
+                success => NoContent(),
+                notFound => NotFound("Inventory not found or Hidden by privacy settings"));
         }
     }
 }

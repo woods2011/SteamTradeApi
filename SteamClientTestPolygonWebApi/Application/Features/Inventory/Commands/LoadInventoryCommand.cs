@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using EFCore.BulkExtensions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using OneOf;
 using OneOf.Types;
@@ -23,29 +25,29 @@ public class LoadInventoryCommand : IRequest<LoadInventoryResult>
     public long Steam64Id { get; init; }
 
     [Range(1, 5000)]
-    public int MaxCount { get; init; } = 5000;
+    public int MaxCount { get; init; } = 500;
 }
 
-public class LoadSteamInventoryCommandHandler : IRequestHandler<LoadInventoryCommand, LoadInventoryResult>
+public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand, LoadInventoryResult>
 {
     private readonly SteamTradeApiDbContext _dbCtx;
-    private readonly ISteamInventoriesClient _steamInventoriesClient;
+    private readonly ISteamInventoriesRemoteService _steamInventoriesService;
     private readonly ITradeCooldownParserFactory _tradeCooldownParserFactory;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IDistributedCache _cache;
-    private readonly ILogger<LoadSteamInventoryCommandHandler> _logger;
+    private readonly ILogger<LoadInventoryCommandHandler> _logger;
 
 
-    public LoadSteamInventoryCommandHandler(
+    public LoadInventoryCommandHandler(
         SteamTradeApiDbContext dbCtx,
-        ISteamInventoriesClient steamInventoriesClient,
+        ISteamInventoriesRemoteService steamInventoriesService,
         ITradeCooldownParserFactory tradeCooldownParserFactory,
         IDateTimeProvider dateTimeProvider,
         IDistributedCache cache,
-        ILogger<LoadSteamInventoryCommandHandler> logger)
+        ILogger<LoadInventoryCommandHandler> logger)
     {
         _dbCtx = dbCtx;
-        _steamInventoriesClient = steamInventoriesClient;
+        _steamInventoriesService = steamInventoriesService;
         _tradeCooldownParserFactory = tradeCooldownParserFactory;
         _dateTimeProvider = dateTimeProvider;
         _cache = cache;
@@ -57,7 +59,7 @@ public class LoadSteamInventoryCommandHandler : IRequestHandler<LoadInventoryCom
     {
         var (steam64Id, appId) = (command.Steam64Id, command.AppId);
 
-        var response = await _steamInventoriesClient.GetInventory(steam64Id, appId, command.MaxCount);
+        var response = await _steamInventoriesService.GetInventory(steam64Id, appId, command.MaxCount, token);
 
         return await response.Match<Task<LoadInventoryResult>>(
             async content => content is null ? new NotFound() : await UpsertInventory(content),
@@ -102,9 +104,16 @@ public class LoadSteamInventoryCommandHandler : IRequestHandler<LoadInventoryCom
         {
             var domainGameItems = descriptions
                 .DistinctBy(descriptionResponse => descriptionResponse.MarketHashName)
-                .Select(descriptionResponse => descriptionResponse.MapToGameItem());
+                .Select(descriptionResponse => descriptionResponse.MapToGameItem())
+                .ToList();
 
-            await _dbCtx.BulkInsertIfNotExistsAsync(domainGameItems.ToList(), ct);
+            var allNames = domainGameItems.Select(item => item.MarketHashName).ToList();
+            var existedNames = await _dbCtx.Items.Where(item => allNames.Contains(item.MarketHashName))
+                .Select(item => item.MarketHashName).ToListAsync(ct);
+            var itemsToInsert = domainGameItems.Where(item => !existedNames.Contains(item.MarketHashName));
+
+            await _dbCtx.BulkInsertAsync(itemsToInsert.ToList(), cancellationToken: ct);
+            //await _dbCtx.BulkInsertIfNotExistsAsync(itemsToInsert.ToList(), ct); // TODO: find fix for this
         }
     }
 }

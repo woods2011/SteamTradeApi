@@ -1,19 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 
 namespace SteamClientTestPolygonWebApi.Helpers.Extensions;
-
-public static class StringExtensions
-{
-    /// <summary>
-    /// Truncate string to a certain length
-    /// </summary>
-    /// <returns>Truncated string</returns>
-    public static string Truncate(this string value, int maxLength)
-    {
-        if (String.IsNullOrEmpty(value)) return value;
-        return value.Length <= maxLength ? value : value[..maxLength];
-    }
-}
 
 /// <summary>
 /// Extensions to avoid possible multiple enumeration of <see cref="IEnumerable{T}"/>.
@@ -75,14 +62,4 @@ public static class EnumerableMaterializeExtensions
 
         public T this[int index] => _source[index];
     }
-}
-
-public static class GeneralEnumerableExtensions
-{
-    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> sequence) => sequence.OfType<T>();
-}
-
-public static class TaskExtensions
-{
-    public static Task<T[]> WhenAllAsync<T>(this IEnumerable<Task<T>> values) => Task.WhenAll(values);
 }

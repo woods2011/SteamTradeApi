@@ -10,7 +10,7 @@ using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 
 namespace SteamClientTestPolygonWebApi.IntegrationTests.Controllers;
 
-public class GeneralWebApplicationFactory : WebApplicationFactory<SteamClientTestPolygonWebApi.Program>, IAsyncLifetime
+public class GeneralWebAppFactory : WebApplicationFactory<SteamClientTestPolygonWebApi.Program>, IAsyncLifetime
 {
     public HttpClient Client { get; private set; } = null!;
     
@@ -58,3 +58,6 @@ public class GeneralWebApplicationFactory : WebApplicationFactory<SteamClientTes
 
     Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
 }
+
+// await using var dbContextFactory = _factory.CreateDbContextFactory();
+// var dbContext = dbContextFactory.DbCtx;

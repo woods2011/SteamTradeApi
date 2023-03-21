@@ -3,7 +3,7 @@ using AutoFixture.Xunit2;
 using FluentAssertions;
 using Refit;
 using RichardSzalay.MockHttp;
-using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
+using SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
 
 namespace SteamClientTestPolygonWebApi.IntegrationTests.RefitClientsTests;
 
@@ -23,7 +23,7 @@ public class SteamInventoriesClientTests
         var api = RestService.For<ISteamInventoriesClient>(httpClient);
 
         // Act
-        var result = await api.GetInventoryInternal(steamId, appId, maxCount);
+        var result = await api.GetInventory(steamId, appId, maxCount);
 
         // Assert
         mockHttp.GetMatchCount(request).Should().Be(1);
