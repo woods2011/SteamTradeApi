@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
 using RichardSzalay.MockHttp;
+using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 using SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
@@ -21,7 +22,7 @@ public class InventoryWebAppFactory : GeneralWebAppFactory
 
     public string SerializedSteamSdkInventoryResponseExample { get; } =
         File.ReadAllText($"{ExternalApisResponsesJsonRootPath}/SteamSdkInventoryResponseExample.json");
-    
+
     public string SerializedSteamSdkItemPriceResponseExample { get; } =
         File.ReadAllText($"{ExternalApisResponsesJsonRootPath}/SteamSdkItemPriceResponseExample.json");
 
@@ -34,23 +35,30 @@ public class InventoryWebAppFactory : GeneralWebAppFactory
 
         builder.ConfigureTestServices(services =>
         {
-            services.AddRefitClient<ISteamInventoriesClient>(generalSteamRefitClientSettings)
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
-                .ConfigurePrimaryHttpMessageHandler(() => MockHttp);
-        });
-        
-        builder.ConfigureTestServices(services =>
-        {
+            services.AddSingleton<ISteamPricesRemoteService, SteamPricesRemoteService>();
             services.AddRefitClient<ISteamPricesClient>(generalSteamRefitClientSettings)
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
-                .ConfigurePrimaryHttpMessageHandler(() => MockHttp);
+                .ConfigureHttpMessageHandlerBuilder(b =>
+                {
+                    b.PrimaryHandler = MockHttp;
+                    b.AdditionalHandlers.Clear();
+                });
+
+            services.AddSingleton<ISteamInventoriesRemoteService, OfficialSteamInventoriesService>();
+            services.AddRefitClient<IOfficialSteamInventoriesClient>(generalSteamRefitClientSettings)
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
+                .ConfigureHttpMessageHandlerBuilder(b =>
+                {
+                    b.PrimaryHandler = MockHttp;
+                    b.AdditionalHandlers.Clear();
+                });
         });
     }
 
     public DbContextScopedFactory<SteamTradeApiDbContext> CreateDbContextFactory() => new(Services);
 
-    private static string ExternalApisResponsesJsonRootPath =>
-        $"{Directory.GetCurrentDirectory()}/Controllers/Inventory/Setup/ExternalApisResponsesJson";
+    private static readonly string ExternalApisResponsesJsonRootPath =
+        $"{Directory.GetCurrentDirectory()}/ExternalApisResponsesJson";
 }
 
 // using System.Net;

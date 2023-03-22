@@ -25,7 +25,7 @@ public class Load : IClassFixture<InventoryWebAppFactory>
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         var serializedSteamSdkInventory = _factory.SerializedSteamSdkInventoryResponseExample;
-        var firstRequest = _factory.MockHttp
+        var request = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond("application/json", serializedSteamSdkInventory);
 
@@ -34,7 +34,7 @@ public class Load : IClassFixture<InventoryWebAppFactory>
 
         //Assert
         loadCreatedResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        _factory.MockHttp.GetMatchCount(firstRequest).Should().Be(1);
+        _factory.MockHttp.GetMatchCount(request).Should().Be(1);
     }
 
     
@@ -92,12 +92,11 @@ public class Load : IClassFixture<InventoryWebAppFactory>
 
 
     [Fact]
-    public async Task Load_ReturnsBadGateway_WhenSteamContinueToReturn429() // ToDo
+    public async Task Load_ReturnsBadGateway_WhenSteamReturns429() // ToDo
     {
         //Arrange
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
-        var totalRetryCountPlusOne = 4;
         var request = _factory.MockHttp
             .When(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond(HttpStatusCode.TooManyRequests);
@@ -107,6 +106,6 @@ public class Load : IClassFixture<InventoryWebAppFactory>
 
         //Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadGateway);
-        _factory.MockHttp.GetMatchCount(request).Should().Be(totalRetryCountPlusOne);
+        _factory.MockHttp.GetMatchCount(request).Should().Be(1);
     }
 }

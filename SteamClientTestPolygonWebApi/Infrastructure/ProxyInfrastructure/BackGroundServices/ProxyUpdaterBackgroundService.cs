@@ -14,7 +14,7 @@ public class ProxyUpdaterBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        await Task.Delay(TimeSpan.FromSeconds(10), token);
+        await Task.Delay(TimeSpan.FromSeconds(1), token); 
         await UpdateProxies(token);
 
         var timer = new PeriodicTimer(TimeSpan.FromMinutes(30)); // ToDo: Move 30 to options

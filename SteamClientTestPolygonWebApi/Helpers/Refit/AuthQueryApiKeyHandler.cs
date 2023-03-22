@@ -8,7 +8,7 @@ namespace SteamClientTestPolygonWebApi.Helpers.Refit;
 public class AuthQueryApiKeyHandler : DelegatingHandler
 {
     private readonly string _apiKey;
-    public string ParamName { get; init; } = "key";
+    public string ParamAlias { get; init; } = "key";
 
     public AuthQueryApiKeyHandler(string apiKey) => _apiKey = apiKey;
 
@@ -26,7 +26,7 @@ public class AuthQueryApiKeyHandler : DelegatingHandler
 
         var uriBuilder = new UriBuilder(request.RequestUri);
         var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-        query[ParamName] = _apiKey;
+        query[ParamAlias] = _apiKey;
         uriBuilder.Query = query.ToString();
         request.RequestUri = uriBuilder.Uri;
 

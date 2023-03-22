@@ -1,9 +1,30 @@
 ﻿namespace SteamClientTestPolygonWebApi.Contracts.External;
 
 public record SteamSdkInventoryResponse(
-    IReadOnlyList<SteamSdkAssetResponse> Assets,
-    IReadOnlyList<SteamSdkDescriptionResponse> Descriptions,
-    int TotalInventoryCount);
+    List<SteamSdkAssetResponse> Assets,
+    List<SteamSdkDescriptionResponse> Descriptions,
+    int TotalInventoryCount,
+    string? LastAssetId)
+{
+    public string? LastAssetId { get; private set; } = LastAssetId;
+
+    public List<SteamSdkDescriptionResponse> Descriptions { get; private set; } = Descriptions;
+
+    public void Merge(SteamSdkInventoryResponse other)
+    {
+        Assets.AddRange(other.Assets);
+        Descriptions.AddRange(other.Descriptions);
+        Descriptions = Descriptions.DistinctBy(x => new { x.InstanceId, x.ClassId }).ToList();
+        LastAssetId = other.LastAssetId;
+    }
+
+    // Todo: remove this method
+    public void Trim(int maxCount)
+    {
+        if (Assets.Count > maxCount) 
+            Assets.RemoveRange(maxCount, Assets.Count - maxCount);
+    }
+};
 
 public record SteamSdkAssetResponse(
     int AppId,
@@ -28,6 +49,39 @@ public record SteamSdkNestedDescriptionResponse(string? Type, string Value);
 
 public record SteamSdkItemTagResponse(string Category, string InternalName);
 
+public record WrappedResponse<TResponse>(TResponse Response);
+
+
+// public record SteamSdkInventoryResponse
+// {
+//     public SteamSdkInventoryResponse(
+//         List<SteamSdkAssetResponse> assets,
+//         List<SteamSdkDescriptionResponse> descriptions,
+//         int totalInventoryCount,
+//         string? lastAssetId)
+//     {
+//         _assets = assets;
+//         _descriptions = descriptions;
+//         TotalInventoryCount = totalInventoryCount;
+//         LastAssetId = lastAssetId;
+//     }
+//
+//     private readonly List<SteamSdkAssetResponse> _assets;
+//
+//     private readonly List<SteamSdkDescriptionResponse> _descriptions;
+//
+//     public IReadOnlyList<SteamSdkAssetResponse> Assets => _assets;
+//     public IReadOnlyList<SteamSdkDescriptionResponse> Descriptions => _descriptions;
+//     public int TotalInventoryCount { get; }
+//     public string? LastAssetId { get; private set; }
+//     
+//     public void Merge(SteamSdkInventoryResponse other)
+//     {
+//         _assets.AddRange(other.Assets);
+//         _descriptions.AddRange(other.Descriptions);
+//         LastAssetId = other.LastAssetId;
+//     }
+// };
 
 // {
 // "appid": 570,

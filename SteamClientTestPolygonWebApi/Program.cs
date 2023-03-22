@@ -92,7 +92,7 @@ internal static class DependencyInjectionExt
         services.AddHostedService<ProxyUpdaterBackgroundService>(); // ToDo
 
         AddSharedProxyPool(services, config);
-        
+
 
         static void AddGoodProxiesSource(IServiceCollection services, IConfiguration config)
         {
@@ -149,8 +149,8 @@ internal static class DependencyInjectionExt
             services
                 .AddRefitClient<ISteamPricesClient>(refitSettings)
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
-                .AddPolicyHandler(ISteamPricesClient.SteamPricesRetryPolicy)
-                .AddPolicyHandler(ISteamPricesClient.SteamPricesTimeoutPolicy)
+                .AddPolicyHandler(ISteamPricesClient.RetryPolicy)
+                .AddPolicyHandler(ISteamPricesClient.TimeoutPolicy)
                 .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
                 {
                     Proxy = sp.GetRequiredService<PooledWebProxyProvider>()
@@ -162,35 +162,44 @@ internal static class DependencyInjectionExt
             IConfiguration config,
             RefitSettings refitSettings)
         {
-            // ToDo: move to file
-            var proxyPoolWithCredentials = new Dictionary<Uri, NetworkCredential>
-            {
-                [new Uri("socks5://194.32.229.151:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://45.87.253.164:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://46.8.23.191:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://45.87.253.149:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://185.181.246.66:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://46.8.110.207:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://213.226.101.58:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://188.130.136.237:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://46.8.22.6:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://188.130.143.52:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://46.8.222.7:5501")] = new("31254134", "ProxySoxybot"),
-                [new Uri("socks5://109.248.204.137:5501")] = new("31254134", "ProxySoxybot"),
-            };
-
-            var inventoryProxyPoolSettings = new ProxyPoolSettings();
-            config.Bind($"{nameof(ProxyPoolSettings)}:Inventory", inventoryProxyPoolSettings);
-            var inventoryProxyPool = PooledWebProxyProvider.CreateWithCredentials(
-                proxyPoolWithCredentials, Options.Create(inventoryProxyPoolSettings));
-
-            services.AddSingleton<ISteamInventoriesRemoteService, SteamInventoriesRemoteService>();
+            services.AddSingleton<ISteamInventoriesRemoteService, SteamApisDotComUnOfficialSteamInventoriesService>();
             services
-                .AddRefitClient<ISteamInventoriesClient>(refitSettings)
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
-                .AddPolicyHandler(ISteamInventoriesClient.SteamInventoriesRetryPolicy)
-                .AddPolicyHandler(ISteamInventoriesClient.SteamInventoriesTimeoutPolicy)
-                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { Proxy = inventoryProxyPool });
+                .AddRefitClient<ISteamApisDotComUnOfficialSteamInventoriesClient>(refitSettings)
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://api.steamapis.com"))
+                .AddPolicyHandler(ISteamApisDotComUnOfficialSteamInventoriesClient.RetryPolicy)
+                .AddPolicyHandler(ISteamApisDotComUnOfficialSteamInventoriesClient.TimeoutPolicy)
+                .AddHttpMessageHandler(() => 
+                    new AuthQueryApiKeyHandler("8eNrfJoHLFzws8HhCSuFMLx8oPg") { ParamAlias = "api_key" });
+
+            // // ToDo: move to file
+            // var proxyPoolWithCredentials = new Dictionary<Uri, NetworkCredential>
+            // {
+            //     [new Uri("socks5://194.32.229.151:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://45.87.253.164:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://46.8.23.191:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://45.87.253.149:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://185.181.246.66:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://46.8.110.207:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://213.226.101.58:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://188.130.136.237:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://46.8.22.6:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://188.130.143.52:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://46.8.222.7:5501")] = new("31254134", "ProxySoxybot"),
+            //     [new Uri("socks5://109.248.204.137:5501")] = new("31254134", "ProxySoxybot"),
+            // };
+            //
+            // var inventoryProxyPoolSettings = new ProxyPoolSettings();
+            // config.Bind($"{nameof(ProxyPoolSettings)}:Inventory", inventoryProxyPoolSettings);
+            // var inventoryProxyPool = PooledWebProxyProvider.CreateWithCredentials(
+            //     proxyPoolWithCredentials, Options.Create(inventoryProxyPoolSettings));
+            //
+            // // services.AddSingleton<ISteamInventoriesRemoteService, OfficialSteamInventoriesService>();
+            // services
+            //     .AddRefitClient<IOfficialSteamInventoriesClient>(refitSettings)
+            //     .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
+            //     .AddPolicyHandler(IOfficialSteamInventoriesClient.RetryPolicy)
+            //     .AddPolicyHandler(IOfficialSteamInventoriesClient.TimeoutPolicy)
+            //     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { Proxy = inventoryProxyPool });
         }
     }
 }

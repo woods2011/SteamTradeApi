@@ -39,7 +39,7 @@ public class SteamPricesRemoteService : ISteamPricesRemoteService
         CancellationToken token = default)
     {
         const int requestsPerSec = 10;                  // ToDo: move to config
-        const int maxSimultaneouslyRequestsCount = 100; // ToDo: move to config
+        const int maxSimultaneouslyRequestsCount = 150; // ToDo: move to config
 
         var steamServiceResultsDelayedTasks = await marketHashNames
             .RunTasksWithDelay(

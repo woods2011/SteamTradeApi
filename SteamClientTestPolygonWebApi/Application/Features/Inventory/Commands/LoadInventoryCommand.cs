@@ -24,7 +24,7 @@ public class LoadInventoryCommand : IRequest<LoadInventoryResult>
     [Required]
     public long Steam64Id { get; init; }
 
-    [Range(1, 5000)]
+    [Range(1, 7000)]
     public int MaxCount { get; init; } = 500;
 }
 

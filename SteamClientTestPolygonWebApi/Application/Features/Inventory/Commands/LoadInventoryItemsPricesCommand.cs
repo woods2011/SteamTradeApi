@@ -76,7 +76,7 @@ public class LoadInventoryItemsPricesCommandHandler :
             steamServiceResult.Switch(
                 itemPriceResponse =>
                 {
-                    if (itemPriceResponse is null) return;
+                    if (itemPriceResponse?.LowestPrice is null) return;
 
                     var (lowestPrice, medianPrice) = (itemPriceResponse.LowestPrice, itemPriceResponse.MedianPrice);
 

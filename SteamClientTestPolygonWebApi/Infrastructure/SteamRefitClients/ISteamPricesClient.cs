@@ -19,13 +19,13 @@ public interface ISteamPricesClient
 
 
     // ToDo: Move to a DI, add options
-    public static readonly AsyncRetryPolicy<HttpResponseMessage> SteamPricesRetryPolicy =
+    public static readonly AsyncRetryPolicy<HttpResponseMessage> RetryPolicy =
         HttpPolicyExtensions
             .HandleTransientHttpError().Or<TimeoutRejectedException>()
             .OrResult(response => response.StatusCode == HttpStatusCode.TooManyRequests)
             .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(0.5), 15));
 
-    public static readonly AsyncTimeoutPolicy<HttpResponseMessage> SteamPricesTimeoutPolicy =
+    public static readonly AsyncTimeoutPolicy<HttpResponseMessage> TimeoutPolicy =
         Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(15));
 }
 
