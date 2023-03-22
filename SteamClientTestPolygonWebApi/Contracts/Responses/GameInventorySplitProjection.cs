@@ -19,7 +19,7 @@ public record GameInventorySplitProjection(
 
 public record GameInventoryAssetSplitProjection(
     string AssetId,
-    string MarketHashName,
+    string ItemMarketHashName,
     bool IsTradable,
     DateTime? TradeCooldownUntilUtc,
     bool IsMarketable,

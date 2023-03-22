@@ -33,10 +33,10 @@ public interface IOfficialSteamInventoriesClient
 
 public interface ISteamApisDotComUnOfficialSteamInventoriesClient
 {
-    [Get("/steam/inventory/76561198015469433/570/2?")]
+    [Get("/steam/inventory/{steamId}/{appId}/2?")]
     public Task<ApiResponse<SteamSdkInventoryResponse>> GetInventory(
-        [AliasAs("steamid")] long steamId,
-        [AliasAs("appid")] int appId,
+        long steamId,
+        int appId,
         [AliasAs("start_assetid")] string? startAssetId = null,
         CancellationToken token = default);
 

@@ -13,15 +13,14 @@ public record SteamSdkInventoryResponse(
     public void Merge(SteamSdkInventoryResponse other)
     {
         Assets.AddRange(other.Assets);
-        Descriptions.AddRange(other.Descriptions);
-        Descriptions = Descriptions.DistinctBy(x => new { x.InstanceId, x.ClassId }).ToList();
+        Descriptions = Descriptions.UnionBy(other.Descriptions, x => new { x.InstanceId, x.ClassId }).ToList();
         LastAssetId = other.LastAssetId;
     }
 
     // Todo: remove this method
     public void Trim(int maxCount)
     {
-        if (Assets.Count > maxCount) 
+        if (Assets.Count > maxCount)
             Assets.RemoveRange(maxCount, Assets.Count - maxCount);
     }
 };
