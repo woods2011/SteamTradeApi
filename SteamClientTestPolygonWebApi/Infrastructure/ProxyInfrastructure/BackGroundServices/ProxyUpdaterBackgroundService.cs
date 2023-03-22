@@ -9,24 +9,25 @@ public class ProxyUpdaterBackgroundService : BackgroundService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public ProxyUpdaterBackgroundService(IServiceScopeFactory serviceScopeFactory)
-        => _serviceScopeFactory = serviceScopeFactory;
+    public ProxyUpdaterBackgroundService(IServiceScopeFactory serviceScopeFactory) =>
+        _serviceScopeFactory = serviceScopeFactory;
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        await Task.Delay(TimeSpan.FromSeconds(1), token); 
-        await UpdateProxies(token);
+        await Task.Delay(TimeSpan.FromSeconds(5), token);
+        
+        const int delayBetweenUpdates = 30; // ToDo: Move to options
+        var timer = new PeriodicTimer(TimeSpan.FromMinutes(delayBetweenUpdates));
 
-        var timer = new PeriodicTimer(TimeSpan.FromMinutes(30)); // ToDo: Move 30 to options
-        while (await timer.WaitForNextTickAsync(token))
-            await UpdateProxies(token);
+        do await UpdateProxies(token);
+        while (await timer.WaitForNextTickAsync(token));
     }
 
     private async Task UpdateProxies(CancellationToken token)
     {
         using var scope = _serviceScopeFactory.CreateScope();
-        var myService = scope.ServiceProvider.GetRequiredService<IProxyUpdaterService>();
-        await myService.UpdateProxies(token);
+        var proxyUpdaterService = scope.ServiceProvider.GetRequiredService<IProxyUpdaterService>();
+        await proxyUpdaterService.UpdateProxies(token);
     }
 }
 
