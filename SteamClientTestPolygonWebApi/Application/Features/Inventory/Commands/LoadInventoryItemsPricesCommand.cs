@@ -25,7 +25,7 @@ public class LoadInventoryItemsPricesCommandHandler :
     IRequestHandler<LoadInventoryItemsPricesCommand, OneOf<Success, NotFound>>
 {
     private readonly SteamTradeApiDbContext _dbCtx;
-    private readonly ISteamPricesRemoteService _steamPricesService;
+    private readonly ISteamMarketRemoteService _steamMarketService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IDistributedCache _cache;
     private readonly ILogger<LoadInventoryCommandHandler> _logger;
@@ -33,13 +33,13 @@ public class LoadInventoryItemsPricesCommandHandler :
 
     public LoadInventoryItemsPricesCommandHandler(
         SteamTradeApiDbContext dbCtx,
-        ISteamPricesRemoteService steamPricesService,
+        ISteamMarketRemoteService steamMarketService,
         IDateTimeProvider dateTimeProvider,
         IDistributedCache cache,
         ILogger<LoadInventoryCommandHandler> logger)
     {
         _dbCtx = dbCtx;
-        _steamPricesService = steamPricesService;
+        _steamMarketService = steamMarketService;
         _dateTimeProvider = dateTimeProvider;
         _cache = cache;
         _logger = logger;
@@ -68,7 +68,7 @@ public class LoadInventoryItemsPricesCommandHandler :
             .Where(item => item.PriceInfo == null || item.PriceInfo.LastUpdateUtc < thresholdUtc)
             .ToListAsync(cancellationToken: token);
 
-        var prices = await _steamPricesService.GetItemsLowestMarketPriceUsd(
+        var prices = await _steamMarketService.GetItemsLowestMarketPriceUsd(
             appId, uniqueItemsFromInventory.Select(item => item.MarketHashName), token);
 
         foreach (var (gameItem, steamServiceResult) in uniqueItemsFromInventory.Zip(prices))

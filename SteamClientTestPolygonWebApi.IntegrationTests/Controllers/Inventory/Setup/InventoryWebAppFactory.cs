@@ -35,7 +35,7 @@ public class InventoryWebAppFactory : GeneralWebAppFactory
 
         builder.ConfigureTestServices(services =>
         {
-            services.AddSingleton<ISteamPricesRemoteService, SteamPricesRemoteService>();
+            services.AddSingleton<ISteamMarketRemoteService, SteamMarketRemoteService>();
             services.AddRefitClient<ISteamPricesClient>(generalSteamRefitClientSettings)
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
                 .ConfigureHttpMessageHandlerBuilder(b =>

@@ -145,16 +145,14 @@ internal static class DependencyInjectionExt
 
         static void AddSteamPricesRemoteService(IServiceCollection services, RefitSettings refitSettings)
         {
-            services.AddSingleton<ISteamPricesRemoteService, SteamPricesRemoteService>();
+            services.AddSingleton<ISteamMarketRemoteService, SteamMarketRemoteService>();
             services
                 .AddRefitClient<ISteamPricesClient>(refitSettings)
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
                 .AddPolicyHandler(ISteamPricesClient.RetryPolicy)
                 .AddPolicyHandler(ISteamPricesClient.TimeoutPolicy)
                 .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
-                {
-                    Proxy = sp.GetRequiredService<PooledWebProxyProvider>()
-                });
+                    { Proxy = sp.GetRequiredService<PooledWebProxyProvider>() });
         }
 
         static void AddSteamInventoriesRemoteService(
@@ -168,7 +166,7 @@ internal static class DependencyInjectionExt
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://api.steamapis.com"))
                 .AddPolicyHandler(ISteamApisDotComUnOfficialSteamInventoriesClient.RetryPolicy)
                 .AddPolicyHandler(ISteamApisDotComUnOfficialSteamInventoriesClient.TimeoutPolicy)
-                .AddHttpMessageHandler(() => 
+                .AddHttpMessageHandler(() =>
                     new AuthQueryApiKeyHandler("8eNrfJoHLFzws8HhCSuFMLx8oPg") { ParamAlias = "api_key" });
 
             // // ToDo: move to file
@@ -199,7 +197,8 @@ internal static class DependencyInjectionExt
             //     .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
             //     .AddPolicyHandler(IOfficialSteamInventoriesClient.RetryPolicy)
             //     .AddPolicyHandler(IOfficialSteamInventoriesClient.TimeoutPolicy)
-            //     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { Proxy = inventoryProxyPool });
+            //     .ConfigurePrimaryHttpMessageHandler(() =>
+            //         new HttpClientHandler { Proxy = inventoryProxyPool, UseCookies = false });
         }
     }
 }

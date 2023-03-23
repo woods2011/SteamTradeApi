@@ -45,10 +45,9 @@ public class GetSteamInventoryFullQueryHandler :
         CancellationToken token)
     {
         var (steam64Id, appId) = (query.Steam64Id.ToString(), query.AppId);
-
         var entryKey = $"InventoryMainProjection-{query.Steam64Id}{query.AppId}";
+        
         var inventorySerialized = await _cache.GetStringAsync(entryKey, token);
-
         var inventoryMainProjection = inventorySerialized is not null
             ? JsonSerializer.Deserialize<GameInventoryFullProjection>(inventorySerialized)
             : null;

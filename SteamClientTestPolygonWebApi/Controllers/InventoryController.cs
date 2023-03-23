@@ -81,7 +81,7 @@ namespace SteamClientTestPolygonWebApi.Controllers
                 connectionToSteamError => StatusCode(StatusCodes.Status504GatewayTimeout,
                     "Our Proxies Servers are temporary unavailable or Steam is down"),
                 steamError => StatusCode(StatusCodes.Status502BadGateway,
-                    $"Steam Response Status Code: {steamError.StatusCode}; Error Reason: {steamError.ReasonPhrase}"));
+                    $"Steam Response Status Code: {(int) steamError.StatusCode}; Error Reason: {steamError.ReasonPhrase}"));
         }
 
 

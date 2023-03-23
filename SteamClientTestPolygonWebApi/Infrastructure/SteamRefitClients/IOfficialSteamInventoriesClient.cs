@@ -20,7 +20,6 @@ public interface IOfficialSteamInventoriesClient
         CancellationToken token = default);
 
 
-    // ToDo: Move to a DI, add options
     public static readonly AsyncRetryPolicy<HttpResponseMessage> RetryPolicy =
         HttpPolicyExtensions
             .HandleTransientHttpError().Or<TimeoutRejectedException>()

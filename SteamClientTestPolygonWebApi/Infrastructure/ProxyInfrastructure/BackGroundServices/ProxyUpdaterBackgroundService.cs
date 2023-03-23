@@ -63,10 +63,10 @@ public class ProxyUpdaterService : IProxyUpdaterService
     /// </summary>
     public async Task UpdateProxies(CancellationToken token)
     {
-        _logger.LogInformation("Proxy list update Started at {Time}", DateTime.UtcNow); // ToDo: remove time
+        //_logger.LogInformation("Proxy list update Started at {Time}", DateTime.UtcNow); // ToDo: remove time
 
-        const int requestsPerSec = 5;                   // ToDo: move to config
-        const int maxSimultaneouslyRequestsCount = 200; // ToDo: move to config
+        const int requestsPerSec = 20;                   // ToDo: move to config
+        const int maxSimultaneouslyRequestsCount = 350; // ToDo: move to config
 
         var proxiesLists = await
             _proxySources.Select(async source => await source.GetProxiesAsync(token)).WhenAllAsync();
@@ -91,8 +91,8 @@ public class ProxyUpdaterService : IProxyUpdaterService
         foreach (var proxyUpdateConsumer in _proxyUpdateConsumers)
             proxyUpdateConsumer.RefreshProxyPool(validProxies);
 
-        _logger.LogInformation("Proxy list update Finished at {Time}", DateTime.UtcNow);
-        _logger.LogInformation("Total valid proxies Count: {ProxiesCount}", validProxies.Count);
+        //_logger.LogInformation("Proxy list update Finished at {Time}", DateTime.UtcNow);
+        //_logger.LogInformation("Total valid proxies Count: {ProxiesCount}", validProxies.Count);
     }
     // var validProxies = await proxies.ToAsyncEnumerable()
     //     .WhereAwait(async uri => await ProxyIsValidPredicate(uri))

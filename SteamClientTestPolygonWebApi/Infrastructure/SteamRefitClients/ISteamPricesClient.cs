@@ -6,6 +6,7 @@ using Polly.Retry;
 using Polly.Timeout;
 using Refit;
 using SteamClientTestPolygonWebApi.Contracts.External;
+using SteamClientTestPolygonWebApi.Helpers.Extensions;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
 
@@ -16,17 +17,35 @@ public interface ISteamPricesClient
         [AliasAs("appid")] int appId,
         [AliasAs("market_hash_name")] string marketHashName,
         CancellationToken token = default);
-
-
-    // ToDo: Move to a DI, add options
+    
+    
+    [Get("/market/listings/{appId}/{marketHashName}/render/")]
+    Task<ApiResponse<ListingsResponse>> GetItemMarketListings(
+        int appId,
+        string marketHashName,
+        string? filter = null,
+        int start = 0,
+        int count = 10,
+        int currency = 1,
+        CancellationToken token = default);
+    
+    
+    [Get("/market/listings/{appId}/{marketHashName}")]
+    Task<ApiResponse<string>> GetItemMarketListingsWithHistoryRaw(
+        int appId,
+        string marketHashName,
+        CancellationToken token = default);
+    
+    
     public static readonly AsyncRetryPolicy<HttpResponseMessage> RetryPolicy =
         HttpPolicyExtensions
             .HandleTransientHttpError().Or<TimeoutRejectedException>()
-            .OrResult(response => response.StatusCode == HttpStatusCode.TooManyRequests)
-            .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(0.5), 15));
+            .OrResult(response => response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.Forbidden)
+            .RetryAsync(12);
 
     public static readonly AsyncTimeoutPolicy<HttpResponseMessage> TimeoutPolicy =
-        Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(15));
+        Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(8));
 }
 
 // https://steamcommunity.com/market/priceoverview/?country=us&currency=1&appid=570&market_hash_name=The%20Abscesserator
+
