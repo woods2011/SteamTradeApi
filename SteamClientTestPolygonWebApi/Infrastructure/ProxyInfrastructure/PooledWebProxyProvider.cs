@@ -56,8 +56,10 @@ public class PooledWebProxyProvider : IWebProxy, IProxyUpdateConsumer
     public Uri GetProxy(Uri? _ = null)
     {
         var proxyPool = ProxyPool;
+        
         if (proxyPool.Count == 0)
-            throw new LackOfProxiesException("Proxy pool is empty");
+            return new Uri("socks5://1.1.1.1"); // ToDo: temporary solution
+            //throw new LackOfProxiesException("Proxy pool is empty");
 
         var proxyIndex = Interlocked.Increment(ref _proxyIndex) - 1;
         var batchIndex = proxyIndex / (_requestsPerProxy * _batchSize);

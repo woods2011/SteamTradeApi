@@ -73,22 +73,17 @@ public class LoadInventoryItemsPricesCommandHandler :
 
         foreach (var (gameItem, steamServiceResult) in uniqueItemsFromInventory.Zip(prices))
         {
-            steamServiceResult.Switch(
-                itemPriceResponse =>
-                {
-                    if (itemPriceResponse?.LowestPrice is null) return;
+            steamServiceResult.TryPickT0(out var itemPriceResponse, out var errors);
+            if (itemPriceResponse?.LowestPrice is null) continue;
 
-                    var (lowestPrice, medianPrice) = (itemPriceResponse.LowestPrice, itemPriceResponse.MedianPrice);
+            var (lowestPrice, medianPrice) = (itemPriceResponse.LowestPrice, itemPriceResponse.MedianPrice);
 
-                    var newPriceInfo = PriceInfo.Create(
-                        ParseUsdPrice(lowestPrice),
-                        medianPrice is null ? null : ParseUsdPrice(medianPrice),
-                        utcNow);
+            var newPriceInfo = PriceInfo.Create(
+                ParseUsdPrice(lowestPrice),
+                medianPrice is null ? null : ParseUsdPrice(medianPrice),
+                utcNow);
 
-                    gameItem.UpdatePriceInfo(newPriceInfo);
-                },
-                connectionToSteamError => { },
-                steamError => { });
+            gameItem.UpdatePriceInfo(newPriceInfo);
         }
 
         await _dbCtx.SaveChangesAsync(token);
@@ -98,12 +93,12 @@ public class LoadInventoryItemsPricesCommandHandler :
         static decimal ParseUsdPrice(string price) =>
             Decimal.Parse(price, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"));
     }
-
-    // var uniqueItemsFromInventory = await _dbCtx.Assets
-    //     .Where(inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId)
-    //     .Where(asset => asset.IsMarketable)
-    //     .Select(asset => asset.GameItem)
-    //     .Distinct()
-    //     .Where(item => item.PriceInfo == null || item.PriceInfo.LastUpdateUtc < thresholdUtc)
-    //     .ToListAsync(token);
 }
+
+// var uniqueItemsFromInventory = await _dbCtx.Assets
+//     .Where(inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId)
+//     .Where(asset => asset.IsMarketable)
+//     .Select(asset => asset.GameItem)
+//     .Distinct()
+//     .Where(item => item.PriceInfo == null || item.PriceInfo.LastUpdateUtc < thresholdUtc)
+//     .ToListAsync(token);

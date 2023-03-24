@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
+using OneOf.Types;
 using Refit;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
@@ -19,7 +20,7 @@ public interface ISteamMarketRemoteService
         int appId,
         IEnumerable<string> marketHashNames,
         CancellationToken token = default);
-    
+
     Task<SteamServiceResult<ListingsResponse?>> GetItemMarketListings(
         int appId,
         string marketHashName,
@@ -34,7 +35,6 @@ public interface ISteamMarketRemoteService
         string marketHashName,
         CancellationToken token = default);
 }
-
 
 public class SteamMarketRemoteService : ISteamMarketRemoteService
 {
@@ -90,22 +90,29 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         var steamServiceResult = await SteamApiResponseToOneOfMapper.Map(() =>
             _steamPricesClient.GetItemMarketListingsWithHistoryRaw(appId, marketHashName, token));
 
-        if (!steamServiceResult.TryPickT0(out var responseHtml, out var errorsReminder))
-            return errorsReminder.Match<SteamServiceResult<GameItemMarketHistoryChartResponse?>>(r => r, r => r);
+        if (!steamServiceResult.TryPickT0(out var responseHtml, out var errorsReminder)) return errorsReminder;
 
         if (responseHtml is null) return null as GameItemMarketHistoryChartResponse;
-
-        var historyChartInJsArrayForm = responseHtml.Split("var line1=")[1].Split(";")[0];
-
-        var trimExtraBracesThenSplitInputToArrayOfArrays = historyChartInJsArrayForm.Trim('[', ']').Split("],[");
-
-        var splitEachArrayToElementsThenTrimQuotes = trimExtraBracesThenSplitInputToArrayOfArrays
-            .Select(tuple => tuple.Split(",")
-                .Select(tupleElement => tupleElement.Trim('\"')).ToArray());
-
-        var historyChartPoints = splitEachArrayToElementsThenTrimQuotes
-            .Select(elements => new GameItemMarketHistoryChartPointResponse(elements[0], elements[1], elements[2]));
-
+        
+        var startOfJsArraySplit = responseHtml.Split("var line1=");
+        if (startOfJsArraySplit.Length < 2) return new NotFound();
+        var historyChartInJsArrayForm = startOfJsArraySplit[1].Split(";")[0];
+        
+        var historyChartPoints = ParseHistoryChartPointsFromJsArray(historyChartInJsArrayForm);
         return new GameItemMarketHistoryChartResponse(historyChartPoints);
+
+
+        static IEnumerable<GameItemMarketHistoryChartPointResponse> ParseHistoryChartPointsFromJsArray(string jsArray)
+        {
+            var trimExtraBracesThenSplitInputToArrayOfArrays = jsArray.Trim('[', ']').Split("],[");
+
+            var splitEachArrayToElementsThenTrimQuotes = trimExtraBracesThenSplitInputToArrayOfArrays
+                .Select(tuple => tuple.Split(",")
+                    .Select(tupleElement => tupleElement.Trim('\"')).ToArray());
+
+            var historyChartPoints = splitEachArrayToElementsThenTrimQuotes
+                .Select(elements => new GameItemMarketHistoryChartPointResponse(elements[0], elements[1], elements[2]));
+            return historyChartPoints;
+        }
     }
 }

@@ -10,7 +10,7 @@ using SteamClientTestPolygonWebApi.Contracts.Responses;
 
 namespace SteamClientTestPolygonWebApi.Application.Features.Market.Queries;
 
-public class GetItemMarketListingsQuery : IRequest<GetItemMarketListingsQueryResult>
+public class GetItemMarketListingsQuery : IRequest<GetItemMarketListingsResult>
 {
     [Required]
     public int AppId { get; init; }
@@ -22,7 +22,7 @@ public class GetItemMarketListingsQuery : IRequest<GetItemMarketListingsQueryRes
 }
 
 public class GetItemMarketListingsQueryHandler :
-    IRequestHandler<GetItemMarketListingsQuery, GetItemMarketListingsQueryResult>
+    IRequestHandler<GetItemMarketListingsQuery, GetItemMarketListingsResult>
 {
     private readonly ISteamMarketRemoteService _steamMarketService;
     private readonly IDistributedCache _cache;
@@ -33,7 +33,7 @@ public class GetItemMarketListingsQueryHandler :
         _cache = cache;
     }
 
-    public async Task<GetItemMarketListingsQueryResult> Handle(
+    public async Task<GetItemMarketListingsResult> Handle(
         GetItemMarketListingsQuery request,
         CancellationToken token)
     {
@@ -43,25 +43,21 @@ public class GetItemMarketListingsQueryHandler :
         var cachedSerializedResponse = await _cache.GetStringAsync(entryKey, token);
         if (cachedSerializedResponse is not null)
         {
-            var response = JsonSerializer.Deserialize<GameItemMarketListingsResponse>(cachedSerializedResponse);
-            if (response is not null) return response;
+            var cachedResponse = JsonSerializer.Deserialize<GameItemMarketListingsResponse>(cachedSerializedResponse);
+            if (cachedResponse is not null) return cachedResponse;
         }
 
         var steamServiceResult =
             await _steamMarketService.GetItemMarketListings(appId, marketHashName, filter, token: token);
 
-        return await steamServiceResult.Match<Task<GetItemMarketListingsQueryResult>>(
-            async listingsExternalResponse =>
-            {
-                if (listingsExternalResponse is null) return new NotFound();
-                
-                var response = MapToResponse(listingsExternalResponse);
-                await CacheResponse(response);
-                
-                return response;
-            },
-            connectionToSteamError => Task.FromResult<GetItemMarketListingsQueryResult>(connectionToSteamError),
-            steamError => Task.FromResult<GetItemMarketListingsQueryResult>(steamError));
+        if (!steamServiceResult.TryPickT0(out var listingsExternalResponse, out var errorsReminder))
+            return errorsReminder;
+
+        if (listingsExternalResponse is null) return new NotFound();
+
+        var response = MapToResponse(listingsExternalResponse);
+        await CacheResponse(response);
+        return response;
 
 
         static GameItemMarketListingsResponse MapToResponse(ListingsResponse listingsExternalResponse)
@@ -82,5 +78,9 @@ public class GetItemMarketListingsQueryHandler :
 }
 
 [GenerateOneOf]
-public partial class GetItemMarketListingsQueryResult :
-    OneOfBase<GameItemMarketListingsResponse, NotFound, ConnectionToSteamError, SteamError> { }
+public partial class GetItemMarketListingsResult :
+    OneOfBase<GameItemMarketListingsResponse, NotFound, ProxyServersError, SteamError>
+{
+    public static implicit operator GetItemMarketListingsResult(OneOf<NotFound, ProxyServersError, SteamError> errors)
+        => errors.Match<GetItemMarketListingsResult>(y => y, z => z, w => w);
+}

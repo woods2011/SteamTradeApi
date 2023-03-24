@@ -27,7 +27,7 @@ public class MojeipNetPlAnonymityJudge : IProxyAnonymityJudge
             var headerParts = line.Split(new[] { ':', '=' }, 2, StringSplitOptions.TrimEntries);
             if (headerParts.Length != 2) continue;
             var (key, value) = (headerParts[0], headerParts[1]);
-            headersFromContent.Add(key, value);
+            headersFromContent.TryAdd(key, value); // ToDo: check
         }
 
         return headersFromContent;

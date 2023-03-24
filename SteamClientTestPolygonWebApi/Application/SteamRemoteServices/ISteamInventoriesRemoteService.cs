@@ -84,7 +84,7 @@ public static class GeneralInventoryFetchLogic
     {
         var firstFetchResult = await fetchInventoryByPartsFunc(steamId, appId, null);
 
-        if (!firstFetchResult.TryPickT0(out var accumulatedInventory, out _)) return firstFetchResult;
+        if (!firstFetchResult.TryPickT0(out var accumulatedInventory, out var errors)) return firstFetchResult;
         if (accumulatedInventory is null) {return firstFetchResult;}
 
         var fetched = accumulatedInventory.Assets.Count;

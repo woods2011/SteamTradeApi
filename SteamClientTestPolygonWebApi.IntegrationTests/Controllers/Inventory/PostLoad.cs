@@ -92,7 +92,7 @@ public class Load : IClassFixture<InventoryWebAppFactory>
 
 
     [Fact]
-    public async Task Load_ReturnsBadGateway_WhenSteamReturns429() // ToDo
+    public async Task Load_ReturnsGatewayTimeout_WhenSteamReturns429() // ToDo
     {
         //Arrange
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
@@ -105,7 +105,7 @@ public class Load : IClassFixture<InventoryWebAppFactory>
         var response = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadGateway);
+        response.StatusCode.Should().Be(HttpStatusCode.GatewayTimeout);
         _factory.MockHttp.GetMatchCount(request).Should().Be(1);
     }
 }

@@ -51,14 +51,27 @@ public class Program
         builder.Services.AddDistributedMemoryCache();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+            options.EnableAnnotations();
+        });
 
+        
         var app = builder.Build();
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "SteamTradeApi v1");
+                options.RoutePrefix = String.Empty;
+            });
         }
+        else app.UseExceptionHandler("/error");
+
 
         app.UseHttpsRedirection();
         app.UseAuthorization();
@@ -107,7 +120,7 @@ internal static class DependencyInjectionExt
                 .AddRefitClient<IGoodProxiesRuApi>()
                 .AddPolicyHandler(HttpPolicyExtensions
                     .HandleTransientHttpError().WaitAndRetryForeverAsync(_ => TimeSpan.FromSeconds(5)))
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://api.good-proxies.ru"))
+                .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://api.good-proxies.ru"))
                 .AddHttpMessageHandler(() => new AuthQueryApiKeyHandler(apiKey));
 
             services.AddSingleton<IProxySource, GoodProxiesRuSource>();
@@ -148,11 +161,15 @@ internal static class DependencyInjectionExt
             services.AddSingleton<ISteamMarketRemoteService, SteamMarketRemoteService>();
             services
                 .AddRefitClient<ISteamPricesClient>(refitSettings)
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
+                .ConfigureHttpClient(client =>
+                {
+                    client.BaseAddress = new Uri("https://steamcommunity.com");
+                    client.Timeout = TimeSpan.FromMinutes(5);
+                })
                 .AddPolicyHandler(ISteamPricesClient.RetryPolicy)
                 .AddPolicyHandler(ISteamPricesClient.TimeoutPolicy)
                 .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
-                    { Proxy = sp.GetRequiredService<PooledWebProxyProvider>() });
+                    { Proxy = sp.GetRequiredService<PooledWebProxyProvider>(), UseProxy = true });
         }
 
         static void AddSteamInventoriesRemoteService(
@@ -163,7 +180,7 @@ internal static class DependencyInjectionExt
             services.AddSingleton<ISteamInventoriesRemoteService, SteamApisDotComUnOfficialSteamInventoriesService>();
             services
                 .AddRefitClient<ISteamApisDotComUnOfficialSteamInventoriesClient>(refitSettings)
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://api.steamapis.com"))
+                .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://api.steamapis.com"))
                 .AddPolicyHandler(ISteamApisDotComUnOfficialSteamInventoriesClient.RetryPolicy)
                 .AddPolicyHandler(ISteamApisDotComUnOfficialSteamInventoriesClient.TimeoutPolicy)
                 .AddHttpMessageHandler(() =>

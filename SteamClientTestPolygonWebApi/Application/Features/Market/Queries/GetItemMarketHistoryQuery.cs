@@ -13,7 +13,7 @@ using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
 
 namespace SteamClientTestPolygonWebApi.Application.Features.Market.Queries;
 
-public class GetItemMarketHistoryQuery : IRequest<GetItemMarketHistoryQueryResult>
+public class GetItemMarketHistoryQuery : IRequest<GetItemMarketHistoryResult>
 {
     [Required]
     public int AppId { get; init; }
@@ -22,8 +22,8 @@ public class GetItemMarketHistoryQuery : IRequest<GetItemMarketHistoryQueryResul
     public string MarketHashName { get; init; } = null!;
 }
 
-public class GetItemMarketHistoryQueryHandler : 
-    IRequestHandler<GetItemMarketHistoryQuery, GetItemMarketHistoryQueryResult>
+public class GetItemMarketHistoryQueryHandler :
+    IRequestHandler<GetItemMarketHistoryQuery, GetItemMarketHistoryResult>
 {
     private readonly ISteamMarketRemoteService _steamMarketService;
     private readonly IDistributedCache _cache;
@@ -34,7 +34,7 @@ public class GetItemMarketHistoryQueryHandler :
         _cache = cache;
     }
 
-    public async Task<GetItemMarketHistoryQueryResult> Handle(
+    public async Task<GetItemMarketHistoryResult> Handle(
         GetItemMarketHistoryQuery request,
         CancellationToken token)
     {
@@ -50,27 +50,28 @@ public class GetItemMarketHistoryQueryHandler :
 
         var steamServiceResult = await _steamMarketService.GetItemMarketHistory(appId, marketHashName, token);
 
-        return await steamServiceResult.Match<Task<GetItemMarketHistoryQueryResult>>(
-            async chartResponse =>
-            {
-                if (chartResponse is null) return new NotFound();
-                await CacheResponse(chartResponse);
-                return chartResponse;
-            },
-            connectionToSteamError => Task.FromResult<GetItemMarketHistoryQueryResult>(connectionToSteamError),
-            steamError => Task.FromResult<GetItemMarketHistoryQueryResult>(steamError));
+        if (!steamServiceResult.TryPickT0(out var chartResponse, out var errorsReminder)) return errorsReminder;
 
-        
-        async Task CacheResponse(GameItemMarketHistoryChartResponse chartResponse)
+        if (chartResponse is null) return new NotFound();
+
+        await CacheResponse(chartResponse);
+        return chartResponse;
+
+        async Task CacheResponse(GameItemMarketHistoryChartResponse chart)
         {
             var cacheOptions = new DistributedCacheEntryOptions()
                 .SetAbsoluteExpiration(TimeSpan.FromHours(6))
                 .SetSlidingExpiration(TimeSpan.FromMinutes(30));
-            var serializedChart = JsonSerializer.Serialize(chartResponse);
+            var serializedChart = JsonSerializer.Serialize(chart);
             await _cache.SetStringAsync(entryKey, serializedChart, cacheOptions, token);
         }
     }
 }
+
 [GenerateOneOf]
-public partial class GetItemMarketHistoryQueryResult :
-    OneOfBase<GameItemMarketHistoryChartResponse, NotFound, ConnectionToSteamError, SteamError> { }
+public partial class GetItemMarketHistoryResult :
+    OneOfBase<GameItemMarketHistoryChartResponse, NotFound, ProxyServersError, SteamError>
+{
+    public static implicit operator GetItemMarketHistoryResult(OneOf<NotFound, ProxyServersError, SteamError> errors)
+        => errors.Match<GetItemMarketHistoryResult>(y => y, z => z, w => w);
+}

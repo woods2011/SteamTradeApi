@@ -4,61 +4,75 @@ using SteamClientTestPolygonWebApi.Application.Features.Inventory.Commands;
 using SteamClientTestPolygonWebApi.Application.Features.Inventory.Queries;
 using SteamClientTestPolygonWebApi.Application.Features.Market.Queries;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
+using SteamClientTestPolygonWebApi.Controllers.Common;
+using Swashbuckle.AspNetCore.Annotations;
 
-namespace SteamClientTestPolygonWebApi.Controllers
+namespace SteamClientTestPolygonWebApi.Controllers;
+
+[Produces("application/json")]
+[ApiController]
+[Route("[controller]")]
+public class MarketController : ControllerBase
 {
-    [Produces("application/json")]
-    [ApiController]
-    [Route("[controller]")]
-    public class MarketController : ControllerBase
+    private readonly ISender _mediatr;
+    private readonly ILogger<MarketController> _logger;
+
+    public MarketController(ISender mediatr, ILogger<MarketController> logger)
     {
-        private readonly ISender _mediatr;
-        private readonly ILogger<MarketController> _logger;
+        _mediatr = mediatr;
+        _logger = logger;
+    }
 
-        public MarketController(ISender mediatr, ILogger<MarketController> logger)
-        {
-            _mediatr = mediatr;
-            _logger = logger;
-        }
+    /// <summary>
+    /// Gets the history of specified Item price changes by Application Id and MarketHashName of the Item
+    /// </summary>
+    /// <remarks>
+    /// Sample request:
+    /// GET /Market/PriceHistory/570/The Abscesserator
+    /// </remarks>
+    /// <param name="query">GetItemMarketHistoryQuery object</param>
+    /// <returns>Returns Item price chart</returns>
+    [HttpGet("PriceHistory/{AppId}/{MarketHashName}")]
+    [SwaggerResponse(200, "Success created")]
+    [SwaggerResponse(404, "If inventory not found or Hidden by user privacy settings")]
+    [SwaggerResponse(502, "If Steam returns error on user request")]
+    [SwaggerResponse(504, "If application proxies servers are temporary overload or unavailable")]
+    public async Task<ActionResult<GameItemMarketHistoryChartResponse>> GetItemMarketHistory(
+        GetItemMarketHistoryQuery query,
+        CancellationToken token)
+    {
+        var itemMarketHistoryQueryResult = await _mediatr.Send(query, token);
+        return itemMarketHistoryQueryResult.Match<ActionResult<GameItemMarketHistoryChartResponse>>(
+            itemMarketHistoryResponse => itemMarketHistoryResponse,
+            notFound => NotFound(ErrorMessages.ItemNotFoundOnMarket),
+            proxyServersError => StatusCode(StatusCodes.Status504GatewayTimeout, ErrorMessages.ProxyServersError),
+            steamError => StatusCode(StatusCodes.Status502BadGateway, ErrorMessages.SteamError(steamError)));
+    }
 
 
-        [HttpGet("pricehistory/{AppId}/{MarketHashName}")]
-        [ProducesResponseType(typeof(GameItemMarketHistoryChartResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status502BadGateway)]
-        [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
-        public async Task<ActionResult<GameItemMarketHistoryChartResponse>> GetItemMarketHistory(
-            GetItemMarketHistoryQuery query,
-            CancellationToken token)
-        {
-            var itemMarketHistoryQueryResult = await _mediatr.Send(query, token);
-            return itemMarketHistoryQueryResult.Match<ActionResult<GameItemMarketHistoryChartResponse>>(
-                itemMarketHistoryResponse => itemMarketHistoryResponse,
-                notFound => NotFound("Item not found on market, please check Item name typed correctly"),
-                connectionToSteamError => StatusCode(StatusCodes.Status504GatewayTimeout,
-                    "Our Proxies Servers are temporary unavailable or Steam is down"),
-                steamError => StatusCode(StatusCodes.Status502BadGateway,
-                    $"Steam Response Status Code: {(int) steamError.StatusCode}; Error Reason: {steamError.ReasonPhrase}"));
-        }
-
-
-        [HttpGet("listings/{AppId}/{MarketHashName}")]
-        [ProducesResponseType(typeof(GameItemMarketListingsResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status502BadGateway)]
-        [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
-        public async Task<ActionResult<GameItemMarketListingsResponse>> GetItemMarketListings(
-            GetItemMarketListingsQuery query,
-            CancellationToken token)
-        {
-            var itemMarketListingsQueryResult = await _mediatr.Send(query, token);
-            return itemMarketListingsQueryResult.Match<ActionResult<GameItemMarketListingsResponse>>(
-                itemMarketListingsResponse => itemMarketListingsResponse,
-                notFound => NotFound("Item not found on market, please check Item name typed correctly"),
-                connectionToSteamError => StatusCode(StatusCodes.Status504GatewayTimeout,
-                    "Our Proxies Servers are temporary unavailable or Steam is down"),
-                steamError => StatusCode(StatusCodes.Status502BadGateway,
-                    $"Steam Response Status Code: {(int) steamError.StatusCode}; Error Reason: {steamError.ReasonPhrase}"));
-        }
+    /// <summary>
+    /// Gets Top10 lowest price listings of specified Item by Application Id and MarketHashName of the Item and optional Filter string
+    /// </summary>
+    /// <remarks>
+    /// Sample request:
+    /// GET /Market/Listings/570/Skull of the Razorwyrm?Filter=Skull of the Razorwyrm NOT "Chaotic locked"
+    /// </remarks>
+    /// <param name="query">GetItemMarketListingsQuery object</param>
+    /// <returns>Returns Top10 lowest price listings of specified Item</returns>
+    [HttpGet("Listings/{AppId}/{MarketHashName}")]
+    [SwaggerResponse(200, "Success created")]
+    [SwaggerResponse(404, "If inventory not found or Hidden by user privacy settings")]
+    [SwaggerResponse(502, "If Steam returns error on user request")]
+    [SwaggerResponse(504, "If application proxies servers are temporary overload or unavailable")]
+    public async Task<ActionResult<GameItemMarketListingsResponse>> GetItemMarketListings(
+        GetItemMarketListingsQuery query,
+        CancellationToken token)
+    {
+        var itemMarketListingsQueryResult = await _mediatr.Send(query, token);
+        return itemMarketListingsQueryResult.Match<ActionResult<GameItemMarketListingsResponse>>(
+            itemMarketListingsResponse => itemMarketListingsResponse,
+            notFound => NotFound(ErrorMessages.ItemNotFoundOnMarket),
+            proxyServersError => StatusCode(StatusCodes.Status504GatewayTimeout, ErrorMessages.ProxyServersError),
+            steamError => StatusCode(StatusCodes.Status502BadGateway, ErrorMessages.SteamError(steamError)));
     }
 }

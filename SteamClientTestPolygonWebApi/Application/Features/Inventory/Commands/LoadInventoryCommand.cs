@@ -59,21 +59,23 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
     {
         var (steam64Id, appId) = (command.Steam64Id, command.AppId);
 
-        var response = await _steamInventoriesService.GetInventory(steam64Id, appId, command.MaxCount, token);
+        var steamServiceResult = await _steamInventoriesService.GetInventory(steam64Id, appId, command.MaxCount, token);
 
-        return await response.Match<Task<LoadInventoryResult>>(
-            async content => content is null ? new NotFound() : await UpsertInventory(content),
-            connectionToSteamError => Task.FromResult<LoadInventoryResult>(connectionToSteamError),
-            steamError => steamError.StatusCode
-                is HttpStatusCode.NotFound or HttpStatusCode.Forbidden
-                ? Task.FromResult<LoadInventoryResult>(new NotFound())
-                : Task.FromResult<LoadInventoryResult>(steamError));
+        if (!steamServiceResult.TryPickT0(out var steamSdkInventoryResponse, out var errorsReminder))
+            return errorsReminder.Match<LoadInventoryResult>(
+                notFound => notFound,
+                error => error,
+                steamError => steamError.StatusCode is HttpStatusCode.Forbidden ? new NotFound() : steamError);
+
+
+        if (steamSdkInventoryResponse is null) return new NotFound();
+
+        await AddNewItemTypes(steamSdkInventoryResponse.Descriptions);
+        return await UpsertInventory(steamSdkInventoryResponse);
 
 
         async Task<Upserted<GameInventory>> UpsertInventory(SteamSdkInventoryResponse inventoryResponse)
         {
-            await AddNewItemTypes(inventoryResponse.Descriptions, token);
-
             var tradeCooldownParser = _tradeCooldownParserFactory.Create(appId);
             var inventoryAssetsDomain = inventoryResponse.MapToGameInventoryAssets(steam64Id, tradeCooldownParser);
 
@@ -100,7 +102,7 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
             return new Upserted<GameInventory>(newInventoryDomain, true);
         }
 
-        async Task AddNewItemTypes(IEnumerable<SteamSdkDescriptionResponse> descriptions, CancellationToken ct)
+        async Task AddNewItemTypes(IEnumerable<SteamSdkDescriptionResponse> descriptions)
         {
             var domainGameItems = descriptions
                 .DistinctBy(descriptionResponse => descriptionResponse.MarketHashName)
@@ -109,10 +111,10 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
 
             var allNames = domainGameItems.Select(item => item.MarketHashName).ToList();
             var existedNames = await _dbCtx.Items.Where(item => allNames.Contains(item.MarketHashName))
-                .Select(item => item.MarketHashName).ToListAsync(ct);
+                .Select(item => item.MarketHashName).ToListAsync(token);
             var itemsToInsert = domainGameItems.Where(item => !existedNames.Contains(item.MarketHashName));
 
-            await _dbCtx.BulkInsertAsync(itemsToInsert.ToList(), cancellationToken: ct);
+            await _dbCtx.BulkInsertAsync(itemsToInsert.ToList(), cancellationToken: token);
             //await _dbCtx.BulkInsertIfNotExistsAsync(itemsToInsert.ToList(), ct); // TODO: find fix for this
         }
     }
@@ -120,4 +122,8 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
 
 [GenerateOneOf]
 public partial class LoadInventoryResult :
-    OneOfBase<Upserted<GameInventory>, NotFound, ConnectionToSteamError, SteamError> { }
+    OneOfBase<Upserted<GameInventory>, NotFound, ProxyServersError, SteamError>
+{
+    public static implicit operator LoadInventoryResult(OneOf<NotFound, ProxyServersError, SteamError> errors)
+        => errors.Match<LoadInventoryResult>(y => y, z => z, w => w);
+}

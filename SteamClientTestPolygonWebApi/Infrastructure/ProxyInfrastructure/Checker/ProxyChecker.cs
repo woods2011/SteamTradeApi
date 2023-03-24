@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using Polly;
+using Polly.Extensions.Http;
 using Polly.Retry;
+using Polly.Timeout;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker.ProxyAnonymityJudges;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker;
@@ -8,13 +10,7 @@ namespace SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checke
 public class ProxyChecker
 {
     private readonly IProxyAnonymityJudge _proxyAnonymityJudge;
-
-    private readonly AsyncRetryPolicy<HttpResponseMessage> _retryPolicy = Policy<HttpResponseMessage>
-        .Handle<Exception>()
-        .OrResult(r => r.IsSuccessStatusCode is false)
-        .RetryAsync(3);
-
-
+    
     public ProxyChecker(IProxyAnonymityJudge proxyAnonymityJudge) =>
         _proxyAnonymityJudge = proxyAnonymityJudge;
 
@@ -28,18 +24,17 @@ public class ProxyChecker
     public async Task<ProxyCheckResult?> CheckProxyAsync(Uri proxyUri, CancellationToken token)
     {
         var httpMessageHandler = new HttpClientHandler { Proxy = new WebProxy(proxyUri) };
-        var client = new HttpClient(httpMessageHandler) { Timeout = TimeSpan.FromSeconds(10) };
+        var client = new HttpClient(httpMessageHandler);
         client.DefaultRequestHeaders.ConnectionClose = true;
 
         var totalRetryCount = -1;
-        var executeResult = await _retryPolicy.ExecuteAndCaptureAsync(ct =>
+        var executeResult = await RetryPolicy.WrapAsync(TimeoutPolicy).ExecuteAndCaptureAsync(ct =>
         {
             totalRetryCount++;
             return client.GetAsync(_proxyAnonymityJudge.ContentUri, ct);
         }, token);
 
-        if (executeResult.Outcome is OutcomeType.Failure)
-            return null;
+        if (executeResult.Outcome is OutcomeType.Failure) return null;
 
         var anonymityLevel = await _proxyAnonymityJudge.Judge(executeResult.Result.Content);
 
@@ -47,8 +42,15 @@ public class ProxyChecker
         // ToDo: extract availability check to separate class
     }
 
-    // .RetryAsync(3, onRetry: (_, retryCount, context) => context["RetriesInvoked"] = retryCount);
-    // var retryCount = executeResult.Context?.GetValueOrDefault("RetriesInvoked") ?? 0;
+    private static readonly AsyncRetryPolicy<HttpResponseMessage> RetryPolicy =
+        HttpPolicyExtensions.HandleTransientHttpError().Or<TimeoutRejectedException>().RetryAsync(3);
+
+    private static readonly AsyncTimeoutPolicy<HttpResponseMessage> TimeoutPolicy =
+        Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10));
 }
 
 public record ProxyCheckResult(ProxyAnonymityLevel ProxyAnonymityLevel, int RetryCount);
+
+    
+// .RetryAsync(3, onRetry: (_, retryCount, context) => context["RetriesInvoked"] = retryCount);
+// var retryCount = executeResult.Context?.GetValueOrDefault("RetriesInvoked") ?? 0;
