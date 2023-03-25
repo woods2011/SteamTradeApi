@@ -2,9 +2,9 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
-using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate.Entities;
-using SteamClientTestPolygonWebApi.Domain.Item;
+using SteamClientTestPolygonWebApi.Core.Domain.GameInventoryAggregate;
+using SteamClientTestPolygonWebApi.Core.Domain.GameInventoryAggregate.Entities;
+using SteamClientTestPolygonWebApi.Core.Domain.Item;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 

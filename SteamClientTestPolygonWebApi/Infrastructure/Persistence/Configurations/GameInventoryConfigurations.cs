@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SteamClientTestPolygonWebApi.Domain.GameInventoryAggregate;
+using SteamClientTestPolygonWebApi.Core.Domain.GameInventoryAggregate;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.Persistence.Configurations;
 

@@ -1,12 +1,10 @@
 using System.Net;
 using Polly;
-using Polly.Contrib.WaitAndRetry;
 using Polly.Extensions.Http;
 using Polly.Retry;
 using Polly.Timeout;
 using Refit;
 using SteamClientTestPolygonWebApi.Contracts.External;
-using SteamClientTestPolygonWebApi.Helpers.Extensions;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
 

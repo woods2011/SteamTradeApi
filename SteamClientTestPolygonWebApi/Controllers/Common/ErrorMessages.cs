@@ -1,4 +1,4 @@
-﻿using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
+﻿using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
 
 namespace SteamClientTestPolygonWebApi.Controllers.Common;
 

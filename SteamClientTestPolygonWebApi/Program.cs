@@ -1,4 +1,3 @@
-using System.Net;
 using System.Reflection;
 using Mapster;
 using MapsterMapper;
@@ -8,10 +7,10 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
 using Refit;
-using SteamClientTestPolygonWebApi.Application.Common;
-using SteamClientTestPolygonWebApi.Application.Features.Inventory.TradeCooldownParsers;
-using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
+using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Contracts.External;
+using SteamClientTestPolygonWebApi.Core.Application.Common;
+using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.TradeCooldownParsers;
 using SteamClientTestPolygonWebApi.Helpers.Refit;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 using SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure;

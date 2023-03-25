@@ -1,10 +1,9 @@
-﻿using System.Net;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SteamClientTestPolygonWebApi.Application.Features.Inventory.Commands;
-using SteamClientTestPolygonWebApi.Application.Features.Inventory.Queries;
+using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Commands;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
 using SteamClientTestPolygonWebApi.Controllers.Common;
+using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Queries;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SteamClientTestPolygonWebApi.Controllers;

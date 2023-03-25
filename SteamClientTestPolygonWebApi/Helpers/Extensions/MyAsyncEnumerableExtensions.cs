@@ -39,11 +39,9 @@ public static class MyAsyncEnumerableExtensions
                 await Task.Delay(delayBetweenTasks, token);
                 await semaphore.WaitAsync(token);
 
-                return taskSelector(input).ContinueWith(t =>
-                {
-                    semaphore.Release();
-                    return t.Result;
-                }, token);
+                var selector = taskSelector(input);
+                _ = selector.ContinueWith(_ => semaphore.Release(), token);
+                return selector;
             });
     }
 }

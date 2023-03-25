@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SteamClientTestPolygonWebApi.Domain.Item;
+using SteamClientTestPolygonWebApi.Core.Domain.Item;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.Persistence.Configurations;
 

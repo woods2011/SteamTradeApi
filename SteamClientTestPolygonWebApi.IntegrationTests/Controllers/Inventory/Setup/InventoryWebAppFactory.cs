@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
 using RichardSzalay.MockHttp;
-using SteamClientTestPolygonWebApi.Application.SteamRemoteServices;
+using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 using SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;

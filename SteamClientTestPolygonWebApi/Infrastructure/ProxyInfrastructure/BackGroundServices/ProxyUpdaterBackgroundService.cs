@@ -69,7 +69,7 @@ public class ProxyUpdaterService : IProxyUpdaterService
         const int maxSimultaneouslyRequestsCount = 350; // ToDo: move to config
 
         var proxiesLists = await
-            _proxySources.Select(async source => await source.GetProxiesAsync(token)).WhenAllAsync();
+            _proxySources.Select(async source => await source.GetProxiesAsync(token)).WhenAll();
         var proxies = proxiesLists.SelectMany(proxies => proxies).Distinct(); // ToDo: replace with AsyncEnumerable
 
         await _selfIpAddressProvider.TryForceUpdateAsync(token);
@@ -86,7 +86,7 @@ public class ProxyUpdaterService : IProxyUpdaterService
                 requestsPerSec, maxSimultaneouslyRequestsCount, token)
             .ToListAsync(token);
 
-        var validProxies = (await validProxiesTasks.WhenAllAsync()).WhereNotNull().ToList();
+        var validProxies = (await validProxiesTasks.WhenAll()).WhereNotNull().ToList();
 
         foreach (var proxyUpdateConsumer in _proxyUpdateConsumers)
             proxyUpdateConsumer.RefreshProxyPool(validProxies);

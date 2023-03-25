@@ -50,7 +50,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Application\Utils" />
+      <Folder Include="Core" />
       <Folder Include="Database" />
     </ItemGroup>
 

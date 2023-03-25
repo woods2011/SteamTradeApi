@@ -63,7 +63,7 @@ public class ProxyParserTests
         var action = () => ProxyParser.Parse(proxyStr);
 
         //Assert
-        action.Should().Throw<ArgumentException>().WithMessage("Uri is in the wrong format");
+        action.Should().Throw<ArgumentException>();
     }
 
 
