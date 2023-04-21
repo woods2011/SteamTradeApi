@@ -23,11 +23,13 @@ public class InventoryController : ControllerBase
     }
 
     /// <summary>
-    /// Gets the Inventory Full Projection by Application Id and Steam Id of the User
+    /// Gets the Inventory Full Projection by Steam64 User Id and Application Id
     /// </summary>
     /// <remarks>
     /// Sample request:
-    /// GET /Inventory/76561198015469433/570
+    ///
+    ///     GET /Inventory/76561198015469433/570
+    /// 
     /// </remarks>
     /// <param name="query">GetInventoryFullQuery object</param>
     /// <returns>Returns Inventory full projection</returns>
@@ -39,21 +41,47 @@ public class InventoryController : ControllerBase
         GetInventoryFullQuery query,
         CancellationToken token)
     {
-        //throw new Exception("Hello From Exception");
-
         var inventoryResponse = await _mediatr.Send(query, token);
         return inventoryResponse.Match<ActionResult<GameInventoryFullProjection>>(
             inventoryProjection => inventoryProjection,
-            notFound => NotFound("Inventory not found, Please load it first"));
+            notFound => NotFound(ErrorMessages.InventoryNotLoaded));
     }
 
 
     /// <summary>
-    /// Gets the Inventory Split Projection by Application Id and Steam Id of the User
+    /// Gets the Inventory Items stack price Projection by Steam64 User Id and Application Id
     /// </summary>
     /// <remarks>
     /// Sample request:
-    /// GET /Inventory/76561198015469433/570/Split
+    /// 
+    ///     GET /Inventory/76561198015469433/570/StackPrice
+    /// 
+    /// </remarks>
+    /// <param name="query">GetInventoryStackPriceQuery object</param>
+    /// <returns>Returns Inventory items stack price projection</returns>
+    [HttpGet("{Steam64Id}/{AppId}/StackPrice")]
+    [SwaggerOperation(Tags = new[] { "InventoryProjections" })]
+    [SwaggerResponse(200, "Success")]
+    [SwaggerResponse(404, "If inventory not loaded (found) yet")]
+    public async Task<ActionResult<GameInventoryStackPriceProjection>> GetStackPriceProjection(
+        GetInventoryStackPriceQuery query,
+        CancellationToken token)
+    {
+        var inventoryResponse = await _mediatr.Send(query, token);
+        return inventoryResponse.Match<ActionResult<GameInventoryStackPriceProjection>>(
+            inventoryProjection => inventoryProjection,
+            notFound => NotFound(ErrorMessages.InventoryNotLoaded));
+    }
+
+
+    /// <summary>
+    /// Gets the Inventory Split Projection by Steam64 User Id and Application Id
+    /// </summary>
+    /// <remarks>
+    /// Sample request:
+    /// 
+    ///     GET /Inventory/76561198015469433/570/Split
+    /// 
     /// </remarks>
     /// <param name="query">GetInventorySplitQuery object</param>
     /// <returns>Returns Inventory split projection</returns>
@@ -73,11 +101,13 @@ public class InventoryController : ControllerBase
 
 
     /// <summary>
-    /// Gets the Inventory Tradability Projection by Application Id and Steam Id of the User
+    /// Gets the Inventory Tradability Projection by Steam64 User Id and Application Id
     /// </summary>
     /// <remarks>
     /// Sample request:
-    /// GET /Inventory/76561198015469433/570/Tradability
+    /// 
+    ///     GET /Inventory/76561198015469433/570/Tradability
+    /// 
     /// </remarks>
     /// <param name="query">GetInventoryTradabilityQuery object</param>
     /// <returns>Returns Inventory tradability projection</returns>
@@ -97,11 +127,13 @@ public class InventoryController : ControllerBase
 
 
     /// <summary>
-    /// Creates or Update User Steam Inventory by Application Id and Steam Id of the User
+    /// Creates or Updates Steam User Inventory by Steam64 User Id and Application Id
     /// </summary>
     /// <remarks>
     /// Sample request:
-    /// POST /Inventory/76561198015469433/570?MaxCount=300
+    /// 
+    ///     POST /Inventory/76561198015469433/570?MaxCount=300
+    /// 
     /// </remarks>
     /// <param name="command">LoadInventoryCommand object</param>
     /// <returns>Returns NoContent if updated inventory was already present in the system or Created if it's first load</returns>
@@ -111,7 +143,7 @@ public class InventoryController : ControllerBase
     [SwaggerResponse(404, "If inventory not found or Hidden by user privacy settings")]
     [SwaggerResponse(502, "If Steam returns error on user request")]
     [SwaggerResponse(504, "If application proxies servers are temporary overload or unavailable")]
-    public async Task<IActionResult> Load(LoadInventoryCommand command, CancellationToken token)
+    public async Task<IActionResult> LoadInventory(LoadInventoryCommand command, CancellationToken token)
     {
         var loadInventoryResult = await _mediatr.Send(command, token);
 
@@ -126,23 +158,27 @@ public class InventoryController : ControllerBase
 
 
     /// <summary>
-    /// Trying to Load/Update Prices for all items in User Steam Inventory by Application Id and Steam Id of the User
+    /// Trying to Load/Update Prices for all items in User Steam Inventory by Steam64 User Id and Application Id
     /// </summary>
     /// <remarks>
     /// Sample request:
-    /// POST /Inventory/76561198015469433/570/Prices
+    /// 
+    ///     POST /Inventory/76561198015469433/570/Prices
+    /// 
     /// </remarks>
     /// <param name="command">LoadInventoryItemsPricesCommand object</param>
     /// <returns>Returns NoContent</returns>
     [HttpPost("{Steam64Id}/{AppId}/Prices")]
     [SwaggerResponse(204, "Successfully updated")]
     [SwaggerResponse(404, "If inventory not loaded (found) yet")]
-    public async Task<IActionResult> LoadPrices(LoadInventoryItemsPricesCommand command, CancellationToken token)
+    public async Task<IActionResult> LoadInventoryPrices(
+        LoadInventoryItemsPricesCommand command,
+        CancellationToken token)
     {
         var loadInventoryPricesResult = await _mediatr.Send(command, token);
 
         return loadInventoryPricesResult.Match<IActionResult>(
             success => NoContent(),
-            notFound => NotFound(ErrorMessages.InventoryNotFound));
+            notFound => NotFound(ErrorMessages.InventoryNotLoaded));
     }
 }
