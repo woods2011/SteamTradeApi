@@ -27,7 +27,7 @@ public class GoodProxiesApiTests
         var api = RestService.For<IGoodProxiesRuApi>(httpClient);
 
         // Act
-        var result =
+        ApiResponse<string> result =
             await api.GetProxies(type: SupportedProxiesSchemes.Http, pingMs: pingMs, time: time, works: works);
 
         // Assert

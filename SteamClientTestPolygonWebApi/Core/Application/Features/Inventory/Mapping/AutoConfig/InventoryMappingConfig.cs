@@ -20,5 +20,8 @@ public class InventoryMappingConfig : IRegister
 
         config.NewConfig<GameInventory, GameInventoryTradabilityProjection>()
             .MapToConstructor(true);
+
+        config.NewConfig<GameItem, GameItemStackPriceProjection>()
+            .MapToConstructor(true);
     }
 }

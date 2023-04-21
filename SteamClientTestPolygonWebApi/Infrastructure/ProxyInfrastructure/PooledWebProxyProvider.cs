@@ -65,9 +65,7 @@ public class PooledWebProxyProvider : IWebProxy, IProxyUpdateConsumer
         var batchIndex = proxyIndex / (_requestsPerProxy * _batchSize);
         var inBatchIndex = proxyIndex % _batchSize;
         var realProxyIndex = (batchIndex * _batchSize + inBatchIndex) % proxyPool.Count;
-        var value = proxyPool[realProxyIndex];
-        Debug.WriteLine(value);
-        return value;
+        return proxyPool[realProxyIndex];
     }
 
     public void RefreshProxyPool(IEnumerable<Uri> newProxyPool)
@@ -116,7 +114,7 @@ public class PooledWebProxyProvider : IWebProxy, IProxyUpdateConsumer
     public ICredentials? Credentials { get; set; }
 }
 
-//ToDO: Add validation
+// ToDO: Add validation
 public class ProxyPoolSettings
 {
     public int BatchSize { get; init; }

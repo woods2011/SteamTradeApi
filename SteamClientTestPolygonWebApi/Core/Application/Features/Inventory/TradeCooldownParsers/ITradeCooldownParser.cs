@@ -39,11 +39,11 @@ public class Dota2TradeCooldownParser : IAppSpecificTradeCooldownParser
 
     static DateTime? TryParseDota2TradeCooldown(string tradeCooldownString)
     {
-        var removedPrefixAndTrimmed = RemovePrefixAndTrim(tradeCooldownString);
+        ReadOnlySpan<char> removedPrefixAndTrimmed = RemovePrefixAndTrim(tradeCooldownString);
         var preparedStr = ReplaceDoubleSpaces(removedPrefixAndTrimmed.ToString());
 
         var (dateFormat, culture, none) = ("MMM d, yyyy (H:mm:ss)", CultureInfo.InvariantCulture, DateTimeStyles.None);
-        if (!DateTime.TryParseExact(preparedStr, dateFormat, culture, none, out var expirationDateNoOffset))
+        if (!DateTime.TryParseExact(preparedStr, dateFormat, culture, none, out DateTime expirationDateNoOffset))
             return null;
 
         var expirationDatePacificTimeZone = new DateTimeOffset(expirationDateNoOffset, TimeSpan.FromHours(-8));

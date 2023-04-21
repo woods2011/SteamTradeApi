@@ -29,7 +29,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
         builder.Logging.AddDebug();
@@ -61,7 +61,7 @@ public class Program
         });
 
 
-        var app = builder.Build();
+        WebApplication app = builder.Build();
 
         if (app.Environment.IsDevelopment())
         {
@@ -82,7 +82,7 @@ internal static class DependencyInjectionExt
 {
     public static void AddMapster(this WebApplicationBuilder builder)
     {
-        var config = TypeAdapterConfig.GlobalSettings;
+        TypeAdapterConfig config = TypeAdapterConfig.GlobalSettings;
         config.Scan(Assembly.GetExecutingAssembly());
         builder.Services.AddSingleton(config);
         builder.Services.AddScoped<IMapper, ServiceMapper>();
@@ -90,8 +90,8 @@ internal static class DependencyInjectionExt
 
     public static void AddProxyInfrastructure(this WebApplicationBuilder builder)
     {
-        var config = builder.Configuration;
-        var services = builder.Services;
+        ConfigurationManager config = builder.Configuration;
+        IServiceCollection services = builder.Services;
 
         AddGoodProxiesSource(services, config);
         AddProxyCheckerWithJudges(services);
@@ -144,8 +144,8 @@ internal static class DependencyInjectionExt
 
     public static void AddSteamClients(this WebApplicationBuilder builder)
     {
-        var config = builder.Configuration;
-        var services = builder.Services;
+        ConfigurationManager config = builder.Configuration;
+        IServiceCollection services = builder.Services;
 
         var generalSteamRefitClientSettings =
             new RefitSettings(new SystemTextJsonContentSerializer(SteamApiJsonSettings.Default));

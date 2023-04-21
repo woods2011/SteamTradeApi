@@ -29,7 +29,7 @@ public class TradeCooldownParserFactory : ITradeCooldownParserFactory
 
     public ITradeCooldownParser Create(int appId)
     {
-        return _parsersMap.TryGetValue(appId, out var parser)
+        return _parsersMap.TryGetValue(appId, out ITradeCooldownParser? parser)
             ? parser
             : _fallbackCooldownParser;
     }

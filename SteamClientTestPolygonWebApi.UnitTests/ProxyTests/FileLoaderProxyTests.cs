@@ -34,7 +34,7 @@ public class FileLoaderProxyTests
         var sut = new FileProxySource(mockFileSystem) { Scheme = scheme };
 
         //Act
-        var proxyPool = (await sut.GetProxiesAsync(CancellationToken.None)).ToList();
+        List<Uri> proxyPool = (await sut.GetProxiesAsync(CancellationToken.None)).ToList();
 
         //Assert
         proxyPool.Should().AllSatisfy(uri => uri.Scheme.Should().BeEquivalentTo(scheme));

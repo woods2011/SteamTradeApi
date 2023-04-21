@@ -48,7 +48,7 @@ public class GetItemMarketListingsQueryHandler :
             if (cachedResponse is not null) return cachedResponse;
         }
 
-        var steamServiceResult =
+        SteamServiceResult<ListingsResponse?> steamServiceResult =
             await _steamMarketService.GetItemMarketListings(appId, marketHashName, filter, token: token);
 
         if (!steamServiceResult.TryPickResult(out ListingsResponse? listingsExternalResponse, out var errors))
@@ -56,14 +56,14 @@ public class GetItemMarketListingsQueryHandler :
 
         if (listingsExternalResponse is null) return new NotFound();
 
-        var response = MapToResponse(listingsExternalResponse);
+        GameItemMarketListingsResponse response = MapToResponse(listingsExternalResponse);
         await CacheResponse(response);
         return response;
 
 
         static GameItemMarketListingsResponse MapToResponse(ListingsResponse listingsExternalResponse)
         {
-            var listingsUsdPrices = listingsExternalResponse.ListingInfos.Values
+            IEnumerable<decimal> listingsUsdPrices = listingsExternalResponse.ListingInfos.Values
                 .Select(pair => (pair.ConvertedFeePerUnit + pair.ConvertedPricePerUnit) / 100.0m);
 
             return new GameItemMarketListingsResponse(listingsUsdPrices.ToList(), listingsExternalResponse.TotalCount);

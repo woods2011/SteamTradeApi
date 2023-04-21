@@ -49,15 +49,15 @@ public class LoadInventoryItemsPricesCommandHandler :
     {
         var (steam64Id, appId) = (command.Steam64Id.ToString(), command.AppId);
 
-        var utcNow = _dateTimeProvider.UtcNow;
-        var thresholdUtc = utcNow.AddDays(-2); // ToDo: -2 move to config
+        DateTime utcNow = _dateTimeProvider.UtcNow;
+        DateTime thresholdUtc = utcNow.AddDays(-2); // ToDo: -2 move to config
 
         var doesInventoryExist = await _dbCtx.Inventories.AnyAsync(
             inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId, token);
 
         if (doesInventoryExist is false) return new NotFound();
 
-        var uniqueItemsFromInventory = await _dbCtx.Inventories
+        List<GameItem> uniqueItemsFromInventory = await _dbCtx.Inventories
             .Where(inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId) // .Take(1)
             .SelectMany(inventory => inventory.Assets)
             .Where(asset => asset.IsMarketable)
@@ -66,8 +66,8 @@ public class LoadInventoryItemsPricesCommandHandler :
             .Where(item => item.PriceInfo == null || item.PriceInfo.LastUpdateUtc < thresholdUtc)
             .ToListAsync(cancellationToken: token);
 
-        var prices = await _steamMarketService.GetItemsLowestMarketPriceUsd(
-            appId, uniqueItemsFromInventory.Select(item => item.MarketHashName), token);
+        IReadOnlyList<SteamServiceResult<SteamSdkItemPriceResponse?>> prices = await _steamMarketService
+            .GetItemsLowestMarketPriceUsd(appId, uniqueItemsFromInventory.Select(item => item.MarketHashName), token);
 
         foreach (var (gameItem, steamServiceResult) in uniqueItemsFromInventory.Zip(prices))
         {

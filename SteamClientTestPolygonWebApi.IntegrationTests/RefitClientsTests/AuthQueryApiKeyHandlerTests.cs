@@ -25,7 +25,7 @@ public class AuthQueryApiKeyHandlerTests
         var api = RestService.For<IGoodProxiesRuApi>(httpClient);
 
         // Act
-        var result = await api.GetProxies(SupportedProxiesSchemes.Http, pingMs, time, works);
+        ApiResponse<string> result = await api.GetProxies(SupportedProxiesSchemes.Http, pingMs, time, works);
 
         // Assert
         result.Should().NotBeNull();

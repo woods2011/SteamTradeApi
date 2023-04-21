@@ -33,7 +33,7 @@ public class SteamWebProxyProviderTests
         }));
 
         //Act
-        var proxyList = Enumerable.Range(0, initialProxyPool.Length * requestsPerProxy)
+        List<Uri> proxyList = Enumerable.Range(0, initialProxyPool.Length * requestsPerProxy)
             .Select(_ => sut.GetProxy())
             .ToList();
 

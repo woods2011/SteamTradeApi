@@ -12,6 +12,8 @@ using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Mapping.M
 using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.TradeCooldownParsers;
 using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Core.Domain.GameInventoryAggregate;
+using SteamClientTestPolygonWebApi.Core.Domain.GameInventoryAggregate.Entities;
+using SteamClientTestPolygonWebApi.Core.Domain.Item;
 using SteamClientTestPolygonWebApi.Helpers.Extensions;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 
@@ -57,7 +59,8 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
     {
         var (steam64Id, appId) = (command.Steam64Id, command.AppId);
 
-        var steamServiceResult = await _steamInventoriesService.GetInventory(steam64Id, appId, command.MaxCount, token);
+        SteamServiceResult<SteamSdkInventoryResponse?> steamServiceResult =
+            await _steamInventoriesService.GetInventory(steam64Id, appId, command.MaxCount, token);
 
         if (!steamServiceResult.TryPickResult(out SteamSdkInventoryResponse? steamSdkInventoryResponse, out var errors))
             return errors.Match<LoadInventoryResult>(
@@ -74,11 +77,12 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
 
         async Task<Upserted<GameInventory>> UpsertInventory(SteamSdkInventoryResponse inventoryResponse)
         {
-            var tradeCooldownParser = _tradeCooldownParserFactory.Create(appId);
-            var inventoryAssetsDomain = inventoryResponse.MapToGameInventoryAssets(steam64Id, tradeCooldownParser);
+            ITradeCooldownParser tradeCooldownParser = _tradeCooldownParserFactory.Create(appId);
+            List<GameInventoryAsset> inventoryAssetsDomain =
+                inventoryResponse.MapToGameInventoryAssets(steam64Id, tradeCooldownParser);
 
             var inventoryCompositePk = new object[] { steam64Id.ToString(), appId };
-            var existingInventoryDomain = await _dbCtx.Inventories.FindAsync(inventoryCompositePk, token);
+            GameInventory? existingInventoryDomain = await _dbCtx.Inventories.FindAsync(inventoryCompositePk, token);
 
             if (existingInventoryDomain is not null)
             {
@@ -102,15 +106,16 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
 
         async Task AddNewItemTypes(IEnumerable<SteamSdkDescriptionResponse> descriptions)
         {
-            var domainGameItems = descriptions
+            List<GameItem> domainGameItems = descriptions
                 .DistinctBy(descriptionResponse => descriptionResponse.MarketHashName)
                 .Select(descriptionResponse => descriptionResponse.MapToGameItem())
                 .ToList();
 
-            var allNames = domainGameItems.Select(item => item.MarketHashName).ToList();
-            var existedNames = await _dbCtx.Items.Where(item => allNames.Contains(item.MarketHashName))
+            List<string> allNames = domainGameItems.Select(item => item.MarketHashName).ToList();
+            List<string> existedNames = await _dbCtx.Items.Where(item => allNames.Contains(item.MarketHashName))
                 .Select(item => item.MarketHashName).ToListAsync(token);
-            var itemsToInsert = domainGameItems.Where(item => !existedNames.Contains(item.MarketHashName));
+            IEnumerable<GameItem> itemsToInsert =
+                domainGameItems.Where(item => !existedNames.Contains(item.MarketHashName));
 
             await _dbCtx.BulkInsertAsync(itemsToInsert.ToList(), cancellationToken: token);
             //await _dbCtx.BulkInsertIfNotExistsAsync(itemsToInsert.ToList(), ct); // TODO: find fix for this

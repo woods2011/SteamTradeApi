@@ -9,8 +9,7 @@ public class Tests
     public async Task WhenFirstSuccessOrDefault_ReturnsFirstSuccessfulTask_WhenAtLeastOneTaskSucceeds()
     {
         // Arrange
-        var tasks = new[]
-        {
+        Task<int>[] tasks = {
             Task.Delay(200).ContinueWith(t => 1),
             Task.FromResult(2),
             Task.FromException<int>(new Exception()),
@@ -30,14 +29,13 @@ public class Tests
     public async Task WhenFirstSuccessOrDefault_ReturnsNull_WhenNoTaskSucceeds()
     {
         // Arrange
-        var tasks = new[]
-        {
+        Task<int>[] tasks = {
             Task.FromException<int>(new Exception()),
             Task.FromException<int>(new Exception())
         };
 
         // Act
-        var result = await tasks.WhenFirstSuccessOrDefault();
+        Task<int>? result = await tasks.WhenFirstSuccessOrDefault();
 
         // Assert
         result.Should().BeNull();
@@ -47,8 +45,7 @@ public class Tests
     public async Task WhenFirstSuccess_ReturnsFirstSuccessfulResult_WhenAtLeastOneTaskSucceeds()
     {
         // Arrange
-        var tasks = new[]
-        {
+        Task<int>[] tasks = {
             Task.Delay(200).ContinueWith(_ => 1),
             Task.FromResult(2),
             Task.FromException<int>(new Exception()),
@@ -67,7 +64,7 @@ public class Tests
     public async Task WhenFirstSuccess_ThrowsArgumentOutOfRangeException_WhenNoTasksAreProvided()
     {
         // Arrange
-        var tasks = Array.Empty<Task<int>>();
+        Task<int>[] tasks = Array.Empty<Task<int>>();
 
         // Act
         var act = async () => await tasks.WhenFirstSuccess();

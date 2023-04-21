@@ -1,5 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using OneOf;
+using OneOf.Types;
 using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Commands;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
 using SteamClientTestPolygonWebApi.Controllers.Common;
@@ -14,13 +16,7 @@ namespace SteamClientTestPolygonWebApi.Controllers;
 public class InventoryController : ControllerBase
 {
     private readonly ISender _mediatr;
-    private readonly ILogger<InventoryController> _logger;
-
-    public InventoryController(ISender mediatr, ILogger<InventoryController> logger)
-    {
-        _mediatr = mediatr;
-        _logger = logger;
-    }
+    public InventoryController(ISender mediatr) => _mediatr = mediatr;
 
     /// <summary>
     /// Gets the Inventory Full Projection by Steam64 User Id and Application Id
@@ -41,8 +37,8 @@ public class InventoryController : ControllerBase
         GetInventoryFullQuery query,
         CancellationToken token)
     {
-        var inventoryResponse = await _mediatr.Send(query, token);
-        return inventoryResponse.Match<ActionResult<GameInventoryFullProjection>>(
+        OneOf<GameInventoryFullProjection, NotFound> inventoryResult = await _mediatr.Send(query, token);
+        return inventoryResult.Match<ActionResult<GameInventoryFullProjection>>(
             inventoryProjection => inventoryProjection,
             notFound => NotFound(ErrorMessages.InventoryNotLoaded));
     }
@@ -67,8 +63,8 @@ public class InventoryController : ControllerBase
         GetInventoryStackPriceQuery query,
         CancellationToken token)
     {
-        var inventoryResponse = await _mediatr.Send(query, token);
-        return inventoryResponse.Match<ActionResult<GameInventoryStackPriceProjection>>(
+        OneOf<GameInventoryStackPriceProjection, NotFound> inventoryResult = await _mediatr.Send(query, token);
+        return inventoryResult.Match<ActionResult<GameInventoryStackPriceProjection>>(
             inventoryProjection => inventoryProjection,
             notFound => NotFound(ErrorMessages.InventoryNotLoaded));
     }
@@ -93,8 +89,8 @@ public class InventoryController : ControllerBase
         GetInventorySplitQuery query,
         CancellationToken token)
     {
-        var inventoryResponse = await _mediatr.Send(query, token);
-        return inventoryResponse.Match<ActionResult<GameInventorySplitProjection>>(
+        OneOf<GameInventorySplitProjection, NotFound> inventoryResult = await _mediatr.Send(query, token);
+        return inventoryResult.Match<ActionResult<GameInventorySplitProjection>>(
             inventoryProjection => inventoryProjection,
             notFound => NotFound(ErrorMessages.InventoryNotLoaded));
     }
@@ -119,8 +115,8 @@ public class InventoryController : ControllerBase
         GetInventoryTradabilityQuery query,
         CancellationToken token)
     {
-        var inventoryResponse = await _mediatr.Send(query, token);
-        return inventoryResponse.Match<ActionResult<GameInventoryTradabilityProjection>>(
+        OneOf<GameInventoryTradabilityProjection, NotFound> inventoryResult = await _mediatr.Send(query, token);
+        return inventoryResult.Match<ActionResult<GameInventoryTradabilityProjection>>(
             inventoryProjection => inventoryProjection,
             notFound => NotFound(ErrorMessages.InventoryNotLoaded));
     }
@@ -145,7 +141,7 @@ public class InventoryController : ControllerBase
     [SwaggerResponse(504, "If application proxies servers are temporary overload or unavailable")]
     public async Task<IActionResult> LoadInventory(LoadInventoryCommand command, CancellationToken token)
     {
-        var loadInventoryResult = await _mediatr.Send(command, token);
+        LoadInventoryResult loadInventoryResult = await _mediatr.Send(command, token);
 
         return loadInventoryResult.Match<IActionResult>(
             upsertedInventory => upsertedInventory.IsNewlyCreated
@@ -175,7 +171,7 @@ public class InventoryController : ControllerBase
         LoadInventoryItemsPricesCommand command,
         CancellationToken token)
     {
-        var loadInventoryPricesResult = await _mediatr.Send(command, token);
+        OneOf<Success, NotFound> loadInventoryPricesResult = await _mediatr.Send(command, token);
 
         return loadInventoryPricesResult.Match<IActionResult>(
             success => NoContent(),

@@ -33,7 +33,7 @@ public class GetTradabilityProjection : IClassFixture<InventoryWebAppFactory>
         await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Act
-        var response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}/Tradability");
+        HttpResponseMessage response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}/Tradability");
 
         //Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -54,7 +54,7 @@ public class GetTradabilityProjection : IClassFixture<InventoryWebAppFactory>
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         //Act
-        var response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}/Tradability");
+        HttpResponseMessage response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}/Tradability");
 
         //Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

@@ -25,12 +25,12 @@ public class Load : IClassFixture<InventoryWebAppFactory>
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         var serializedSteamSdkInventory = _factory.SerializedSteamSdkInventoryResponseExample;
-        var request = _factory.MockHttp
+        MockedRequest request = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond("application/json", serializedSteamSdkInventory);
 
         //Act
-        var loadCreatedResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        HttpResponseMessage loadCreatedResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
         loadCreatedResponse.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -45,13 +45,13 @@ public class Load : IClassFixture<InventoryWebAppFactory>
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         var serializedSteamSdkInventory = _factory.SerializedSteamSdkInventoryResponseExample;
-        var request = _factory.MockHttp
+        MockedRequest request = _factory.MockHttp
             .When(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond("application/json", serializedSteamSdkInventory);
-        var createdResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        HttpResponseMessage createdResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Act
-        var loadNoContentResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        HttpResponseMessage loadNoContentResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
         loadNoContentResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -66,20 +66,20 @@ public class Load : IClassFixture<InventoryWebAppFactory>
         //Arrange
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
-        var notFoundRequest = _factory.MockHttp
+        MockedRequest notFoundRequest = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond(HttpStatusCode.NotFound);
-        var forbiddenRequest = _factory.MockHttp
+        MockedRequest forbiddenRequest = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond(HttpStatusCode.Forbidden);
-        var nullJsonResponse = _factory.MockHttp
+        MockedRequest nullJsonResponse = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond("application/json", "null");
 
         //Act
-        var whenNotFoundResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
-        var whenForbiddenResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
-        var whenNullJsonResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        HttpResponseMessage whenNotFoundResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        HttpResponseMessage whenForbiddenResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        HttpResponseMessage whenNullJsonResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
         whenNotFoundResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -97,12 +97,12 @@ public class Load : IClassFixture<InventoryWebAppFactory>
         //Arrange
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
-        var request = _factory.MockHttp
+        MockedRequest request = _factory.MockHttp
             .When(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond(HttpStatusCode.TooManyRequests);
 
         //Act
-        var response = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        HttpResponseMessage response = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Assert
         response.StatusCode.Should().Be(HttpStatusCode.GatewayTimeout);

@@ -3,6 +3,7 @@ using AutoFixture.Xunit2;
 using FluentAssertions;
 using Refit;
 using RichardSzalay.MockHttp;
+using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
 
 namespace SteamClientTestPolygonWebApi.IntegrationTests.RefitClientsTests;
@@ -14,8 +15,8 @@ public class SteamPricesClientTests
     {
         // Arrange
         var mockHttp = new MockHttpMessageHandler();
-        var expectedUri =
-            $"https://steamcommunity.com/market/priceoverview/?country=us&currency=1&appid={appId}&market_hash_name={marketHashName}";
+        var expectedUri = $"https://steamcommunity.com/market/priceoverview/" +
+                          $"?country=us&currency=1&appid={appId}&market_hash_name={marketHashName}";
 
         var request = mockHttp.Expect(expectedUri).Respond(HttpStatusCode.OK);
 
@@ -24,7 +25,7 @@ public class SteamPricesClientTests
         var api = RestService.For<ISteamPricesClient>(httpClient);
 
         // Act
-        var result = await api.GetItemLowestMarketPriceUsd(appId, marketHashName);
+        ApiResponse<SteamSdkItemPriceResponse> result = await api.GetItemLowestMarketPriceUsd(appId, marketHashName);
 
         // Assert
         mockHttp.GetMatchCount(request).Should().Be(1);

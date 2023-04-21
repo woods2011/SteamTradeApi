@@ -15,7 +15,7 @@ public class GetInventoryTradabilityQuery : IRequest<OneOf<GameInventoryTradabil
 {
     [Required]
     public long Steam64Id { get; init; }
-    
+
     [Required]
     public int AppId { get; init; }
 }
@@ -33,7 +33,7 @@ public class GetInventoryTradabilityQueryHandler :
     {
         var (steam64Id, appId) = (query.Steam64Id.ToString(), query.AppId);
 
-        var inventoryProjection = await _dbCtx.Inventories
+        GameInventoryTradabilityProjection? inventoryProjection = await _dbCtx.Inventories
             .Where(inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId)
             .ProjectToType<GameInventoryTradabilityProjection>()
             .FirstOrDefaultAsync(token);

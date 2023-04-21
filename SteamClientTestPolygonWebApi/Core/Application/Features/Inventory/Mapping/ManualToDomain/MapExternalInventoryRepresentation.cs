@@ -17,7 +17,7 @@ public static class MapExternalInventoryRepresentation
 
         var isTradable = itemDescription.Tradable is 1;
         var isMarketable = itemDescription.Marketable is 1;
-        var tradeCooldownUntilUtc = isTradable || !isMarketable
+        DateTime? tradeCooldownUntilUtc = isTradable || !isMarketable
             ? null
             : tradeCooldownParser.TryParseItemDescription(itemDescription);
 
@@ -36,7 +36,7 @@ public static class MapExternalInventoryRepresentation
         this SteamSdkInventoryResponse inventory, LoadInventoryCommand request,
         DateTime nowUtc, ITradeCooldownParser tradeCooldownParser)
     {
-        var assets = MapToGameInventoryAssets(inventory, request.Steam64Id, tradeCooldownParser);
+        List<GameInventoryAsset> assets = MapToGameInventoryAssets(inventory, request.Steam64Id, tradeCooldownParser);
 
         return GameInventory.Create(
             appId: request.AppId,
@@ -48,12 +48,11 @@ public static class MapExternalInventoryRepresentation
     public static List<GameInventoryAsset> MapToGameInventoryAssets(
         this SteamSdkInventoryResponse inventory, long steam64Id, ITradeCooldownParser tradeCooldownParser)
     {
-        var assets = inventory.Assets.Join(inventory.Descriptions,
+        List<GameInventoryAsset> assets = inventory.Assets.Join(inventory.Descriptions,
                 asset => (asset.ClassId, asset.InstanceId),
                 description => (description.ClassId, description.InstanceId),
                 (asset, description) =>
-                    (asset, description, steam64Id).MapToGameInventoryAsset(tradeCooldownParser))
-            .ToList();
+                    (asset, description, steam64Id).MapToGameInventoryAsset(tradeCooldownParser)).ToList();
 
         return assets;
     }

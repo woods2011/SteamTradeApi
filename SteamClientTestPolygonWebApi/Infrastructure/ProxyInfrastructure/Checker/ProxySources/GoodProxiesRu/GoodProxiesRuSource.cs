@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Options;
+using Refit;
 using SteamClientTestPolygonWebApi.Helpers.Extensions;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.ProxyInfrastructure.Checker.ProxySources.GoodProxiesRu;
@@ -22,7 +23,7 @@ public class GoodProxiesRuSource : IProxySource
 
         foreach (var proxyType in proxyTypes)
         {
-            var response = await _api.GetAnonProxies(
+            ApiResponse<string> response = await _api.GetAnonProxies(
                 type: proxyType,
                 pingMs: _settings.MaxPingMs,
                 time: _settings.MaxTimeFromLastUpdateSeconds,

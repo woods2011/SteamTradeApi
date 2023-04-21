@@ -37,7 +37,7 @@ public class SteamInventoriesService : ISteamInventoriesRemoteService
                 _inventoriesClient.GetInventory(inSteamId, inAppId, lastAssetId, fetchPerTime, token));
         }
 
-        var fetchResult =
+        SteamServiceResult<SteamSdkInventoryResponse?> fetchResult =
             await GeneralInventoryFetchLogic.GetInventory(steamId, appId, maxCount, FetchInventoryByPartsFunc);
 
         return fetchResult;
@@ -67,7 +67,7 @@ public class SteamApisDotComInventoriesService : ISteamInventoriesRemoteService
                 _inventoriesClient.GetInventory(inSteamId, inAppId, lastAssetId, token));
         }
 
-        var fetchResult =
+        SteamServiceResult<SteamSdkInventoryResponse?> fetchResult =
             await GeneralInventoryFetchLogic.GetInventory(steamId, appId, maxCount, FetchInventoryByPartsFunc);
 
         return fetchResult;
@@ -82,11 +82,12 @@ public static class GeneralInventoryFetchLogic
         int maxCount,
         Func<long, int, string?, Task<SteamServiceResult<SteamSdkInventoryResponse?>>> fetchInventoryByPartsFunc)
     {
-        var firstFetchResult = await fetchInventoryByPartsFunc(steamId, appId, null);
+        SteamServiceResult<SteamSdkInventoryResponse?> firstFetchResult =
+            await fetchInventoryByPartsFunc(steamId, appId, null);
 
-        if (!firstFetchResult.TryPickResult(out SteamSdkInventoryResponse? accumulatedInventory, out var errors)) 
+        if (!firstFetchResult.TryPickResult(out SteamSdkInventoryResponse? accumulatedInventory, out var errors))
             return errors;
-        
+
         if (accumulatedInventory is null) return firstFetchResult;
 
         var fetched = accumulatedInventory.Assets.Count;
@@ -94,9 +95,11 @@ public static class GeneralInventoryFetchLogic
 
         while (fetched < Math.Min(totalInventoryCount, maxCount))
         {
-            var fetchResult = await fetchInventoryByPartsFunc(steamId, appId, accumulatedInventory.LastAssetId);
+            SteamServiceResult<SteamSdkInventoryResponse?> fetchResult =
+                await fetchInventoryByPartsFunc(steamId, appId, accumulatedInventory.LastAssetId);
 
-            if (!fetchResult.TryPickResult(out var newInventoryPart, out _)) return accumulatedInventory;
+            if (!fetchResult.TryPickResult(out SteamSdkInventoryResponse? newInventoryPart, out _))
+                return accumulatedInventory;
             if (newInventoryPart is null) return accumulatedInventory;
 
             accumulatedInventory.Merge(newInventoryPart);

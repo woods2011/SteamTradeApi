@@ -66,7 +66,7 @@ public class SelfIpAddressProvider : ISelfIpAddressProvider
     private async Task<TResponse?> GetResponseOrDefault<TResponse>(
         HttpClient ipifyOrgClient, string requestUri, CancellationToken token) where TResponse : class
     {
-        var executeResult =
+        PolicyResult<HttpResponseMessage>? executeResult =
             await _retryPolicy.ExecuteAndCaptureAsync(ct => ipifyOrgClient.GetAsync(requestUri, ct), token);
 
         if (executeResult.Outcome is OutcomeType.Failure) return null;

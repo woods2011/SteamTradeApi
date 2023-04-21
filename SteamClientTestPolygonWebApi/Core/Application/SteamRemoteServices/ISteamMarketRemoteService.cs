@@ -54,10 +54,11 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         string marketHashName,
         CancellationToken token = default)
     {
-        var firstCompletedResult = await MyTaskExtensions.WhenFirstSuccessCancelOther(
-            ct => GetItemLowestMarketPriceUsdOnce(appId, marketHashName, ct),
-            repeatTimes: 3,
-            token);
+        SteamServiceResult<SteamSdkItemPriceResponse?> firstCompletedResult =
+            await MyTaskExtensions.WhenFirstSuccessCancelOther(
+                ct => GetItemLowestMarketPriceUsdOnce(appId, marketHashName, ct),
+                repeatTimes: 3,
+                token);
 
         return firstCompletedResult;
     }
@@ -70,11 +71,12 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         const int requestsPerSec = 10;                  // ToDo: move to config
         const int maxSimultaneouslyRequestsCount = 150; // ToDo: move to config
 
-        var steamServiceResultsDelayedTasks = await marketHashNames
-            .RunTasksWithDelay(
-                marketHashName => GetItemLowestMarketPriceUsdOnce(appId, marketHashName, token),
-                requestsPerSec, maxSimultaneouslyRequestsCount, token)
-            .ToListAsync(cancellationToken: token);
+        List<Task<SteamServiceResult<SteamSdkItemPriceResponse?>>> steamServiceResultsDelayedTasks =
+            await marketHashNames
+                .RunTasksWithDelay(
+                    marketHashName => GetItemLowestMarketPriceUsdOnce(appId, marketHashName, token),
+                    requestsPerSec, maxSimultaneouslyRequestsCount, token)
+                .ToListAsync(cancellationToken: token);
 
         return await steamServiceResultsDelayedTasks.WhenAll();
     }
@@ -88,14 +90,14 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         SteamCurrency currency = SteamCurrency.Usd,
         CancellationToken token = default)
     {
-        var firstCompletedResult = await MyTaskExtensions.WhenFirstSuccessCancelOther(
+        SteamServiceResult<ListingsResponse?> firstCompletedResult = await MyTaskExtensions.WhenFirstSuccessCancelOther(
             ct => GetItemMarketListingsOnce(appId, marketHashName, filter, start, count, currency, ct),
             repeatTimes: 3,
             token);
 
         return firstCompletedResult;
     }
-    
+
     public async Task<SteamServiceResult<ListingsResponse?>> GetItemMarketListingsOnce(
         int appId,
         string marketHashName,
@@ -105,7 +107,6 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         SteamCurrency currency = SteamCurrency.Usd,
         CancellationToken token = default)
     {
-        
         return await SteamApiResponseToOneOfMapper.Map(() => _steamPricesClient.GetItemMarketListings(
             appId, marketHashName, filter, start, count, (int) currency, token));
     }
@@ -116,8 +117,8 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         string marketHashName,
         CancellationToken token = default)
     {
-        var steamServiceResult = await SteamApiResponseToOneOfMapper.Map(() =>
-            _steamPricesClient.GetItemMarketListingsWithHistoryRaw(appId, marketHashName, token));
+        SteamServiceResult<string?> steamServiceResult = await SteamApiResponseToOneOfMapper.Map(
+            () => _steamPricesClient.GetItemMarketListingsWithHistoryRaw(appId, marketHashName, token));
 
         if (!steamServiceResult.TryPickResult(out var responseHtml, out var errors)) return errors;
 
@@ -127,7 +128,8 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         if (startOfJsArraySplit.Length < 2) return new NotFound();
         var historyChartInJsArrayForm = startOfJsArraySplit[1].Split(";")[0];
 
-        var historyChartPoints = ParseHistoryChartPointsFromJsArray(historyChartInJsArrayForm);
+        IEnumerable<GameItemMarketHistoryChartPointResponse> historyChartPoints =
+            ParseHistoryChartPointsFromJsArray(historyChartInJsArrayForm);
         return new GameItemMarketHistoryChartResponse(historyChartPoints);
 
 
@@ -135,12 +137,14 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         {
             var trimExtraBracesThenSplitInputToArrayOfArrays = jsArray.Trim('[', ']').Split("],[");
 
-            var splitEachArrayToElementsThenTrimQuotes = trimExtraBracesThenSplitInputToArrayOfArrays
+            IEnumerable<string[]> splitEachArrayToElementsThenTrimQuotes = trimExtraBracesThenSplitInputToArrayOfArrays
                 .Select(tuple => tuple.Split(",")
                     .Select(tupleElement => tupleElement.Trim('\"')).ToArray());
 
-            var historyChartPoints = splitEachArrayToElementsThenTrimQuotes
-                .Select(elements => new GameItemMarketHistoryChartPointResponse(elements[0], elements[1], elements[2]));
+            IEnumerable<GameItemMarketHistoryChartPointResponse> historyChartPoints =
+                splitEachArrayToElementsThenTrimQuotes
+                    .Select(elements =>
+                        new GameItemMarketHistoryChartPointResponse(elements[0], elements[1], elements[2]));
             return historyChartPoints;
         }
     }

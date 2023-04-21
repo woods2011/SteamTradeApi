@@ -13,13 +13,8 @@ namespace SteamClientTestPolygonWebApi.Controllers;
 public class MarketController : ControllerBase
 {
     private readonly ISender _mediatr;
-    private readonly ILogger<MarketController> _logger;
 
-    public MarketController(ISender mediatr, ILogger<MarketController> logger)
-    {
-        _mediatr = mediatr;
-        _logger = logger;
-    }
+    public MarketController(ISender mediatr) => _mediatr = mediatr;
 
     /// <summary>
     /// Gets the history of specified Item price changes by Application Id and MarketHashName of the Item
@@ -41,7 +36,7 @@ public class MarketController : ControllerBase
         GetItemMarketHistoryQuery query,
         CancellationToken token)
     {
-        var itemMarketHistoryQueryResult = await _mediatr.Send(query, token);
+        GetItemMarketHistoryResult itemMarketHistoryQueryResult = await _mediatr.Send(query, token);
         return itemMarketHistoryQueryResult.Match<ActionResult<GameItemMarketHistoryChartResponse>>(
             itemMarketHistoryResponse => itemMarketHistoryResponse,
             notFound => NotFound(ErrorMessages.ItemNotFoundOnMarket),
@@ -70,7 +65,7 @@ public class MarketController : ControllerBase
         GetItemMarketListingsQuery query,
         CancellationToken token)
     {
-        var itemMarketListingsQueryResult = await _mediatr.Send(query, token);
+        GetItemMarketListingsResult itemMarketListingsQueryResult = await _mediatr.Send(query, token);
         return itemMarketListingsQueryResult.Match<ActionResult<GameItemMarketListingsResponse>>(
             itemMarketListingsResponse => itemMarketListingsResponse,
             notFound => NotFound(ErrorMessages.ItemNotFoundOnMarket),

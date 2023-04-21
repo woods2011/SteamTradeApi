@@ -45,7 +45,8 @@ public class GetItemMarketHistoryQueryHandler :
             if (response is not null) return response;
         }
 
-        var steamServiceResult = await _steamMarketService.GetItemMarketHistory(appId, marketHashName, token);
+        SteamServiceResult<GameItemMarketHistoryChartResponse?> steamServiceResult = 
+            await _steamMarketService.GetItemMarketHistory(appId, marketHashName, token);
 
         if (!steamServiceResult.TryPickResult(out GameItemMarketHistoryChartResponse? chartResponse, out var errors)) 
             return errors;

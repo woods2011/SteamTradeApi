@@ -68,7 +68,7 @@ public class ProxyUpdaterService : IProxyUpdaterService
         const int requestsPerSec = 20;                   // ToDo: move to config
         const int maxSimultaneouslyRequestsCount = 350; // ToDo: move to config
 
-        var proxiesLists = await
+        IEnumerable<Uri>[] proxiesLists = await
             _proxySources.Select(async source => await source.GetProxiesAsync(token)).WhenAll();
         var proxies = proxiesLists.SelectMany(proxies => proxies).Distinct(); // ToDo: replace with AsyncEnumerable
 

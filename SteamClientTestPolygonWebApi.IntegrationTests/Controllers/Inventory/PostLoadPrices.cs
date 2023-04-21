@@ -25,18 +25,18 @@ public class LoadPrices : IClassFixture<InventoryWebAppFactory>
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         var serializedSteamSdkInventory = _factory.SerializedSteamSdkInventoryResponseExample;
-        var firstRequest = _factory.MockHttp
+        MockedRequest firstRequest = _factory.MockHttp
             .Expect(HttpMethod.Get, $"https://steamcommunity.com/inventory/{steam64Id}/{appId}/2*")
             .Respond("application/json", serializedSteamSdkInventory);
-        var loadCreatedResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
+        HttpResponseMessage loadCreatedResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
         
         var serializedSteamSdkItemPrice = _factory.SerializedSteamSdkItemPriceResponseExample;
-        var request = _factory.MockHttp
+        MockedRequest request = _factory.MockHttp
             .When(HttpMethod.Get, $"https://steamcommunity.com/market/priceoverview/?country=us&currency=1&appid={appId}")
             .Respond("application/json", serializedSteamSdkItemPrice);
 
         //Act
-        var loadNoContentResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}/Prices", null);
+        HttpResponseMessage loadNoContentResponse = await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}/Prices", null);
 
         //Assert
         loadNoContentResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -50,7 +50,7 @@ public class LoadPrices : IClassFixture<InventoryWebAppFactory>
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         //Act
-        var response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}");
+        HttpResponseMessage response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}");
 
         //Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

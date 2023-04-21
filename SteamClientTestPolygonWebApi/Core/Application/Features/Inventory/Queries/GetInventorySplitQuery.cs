@@ -13,7 +13,7 @@ public class GetInventorySplitQuery : IRequest<OneOf<GameInventorySplitProjectio
 {
     [Required]
     public long Steam64Id { get; init; }
-    
+
     [Required]
     public int AppId { get; init; }
 }
@@ -42,10 +42,10 @@ public class GetSteamInventorySplitQueryHandler :
 
         if (inventory is null) return new NotFound();
 
-        var assetsSplitProjection = inventory.Assets
+        List<GameInventoryAssetSplitProjection> assetsSplitProjection = inventory.Assets
             .Select(asset => _mapper.Map<GameInventoryAssetSplitProjection>(asset)).ToList();
-        
-        var gameItemsSplitProjection = inventory.Assets
+
+        List<GameItemFullProjection> gameItemsSplitProjection = inventory.Assets
             .Select(asset => asset.GameItem)
             .DistinctBy(item => item.MarketHashName)
             .Select(gameItem => _mapper.Map<GameItemFullProjection>(gameItem)).ToList();

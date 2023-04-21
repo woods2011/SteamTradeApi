@@ -32,7 +32,7 @@ public class SteamInventoriesClientTests
         var api = RestService.For<ISteamInventoriesClient>(httpClient);
 
         // Act
-        var result = await api.GetInventory(steam64Id, appId, startAssetId, maxCount);
+        ApiResponse<SteamSdkInventoryResponse> result = await api.GetInventory(steam64Id, appId, startAssetId, maxCount);
 
         // Assert
         mockHttp.GetMatchCount(request).Should().Be(1);
@@ -58,7 +58,7 @@ public class SteamInventoriesClientTests
             new RefitSettings(new SystemTextJsonContentSerializer(SteamApiJsonSettings.Default)));
 
         // Act
-        var result = await api.GetInventory(steam64Id, appId);
+        ApiResponse<SteamSdkInventoryResponse> result = await api.GetInventory(steam64Id, appId);
 
         // Assert
         mockHttp.GetMatchCount(request).Should().Be(1);

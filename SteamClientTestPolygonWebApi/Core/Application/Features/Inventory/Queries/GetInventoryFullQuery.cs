@@ -37,13 +37,9 @@ public class GetSteamInventoryFullQueryHandler :
         CancellationToken token)
     {
         var (steam64Id, appId) = (query.Steam64Id.ToString(), query.AppId);
-        var entryKey = $"InventoryMainProjection-{query.Steam64Id}{query.AppId}";
-        
-        var inventorySerialized = await _cache.GetStringAsync(entryKey, token);
-        var inventoryMainProjection = inventorySerialized is not null
-            ? JsonSerializer.Deserialize<GameInventoryFullProjection>(inventorySerialized)
-            : null;
+        var entryKey = $"InventoryMainProjection-{steam64Id}{appId}";
 
+        GameInventoryFullProjection? inventoryMainProjection = await GetFromCacheOrDefault();
         if (inventoryMainProjection is not null) return inventoryMainProjection;
 
         inventoryMainProjection = await _dbCtx.Inventories
@@ -53,10 +49,25 @@ public class GetSteamInventoryFullQueryHandler :
         
         if (inventoryMainProjection is null) return new NotFound();
 
-        var cacheOptions = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(20));
-        var serializedInventory = JsonSerializer.Serialize(inventoryMainProjection);
-        await _cache.SetStringAsync(entryKey, serializedInventory, cacheOptions, token);
+        await SetCache();
 
         return inventoryMainProjection;
+        
+
+        async Task<GameInventoryFullProjection?> GetFromCacheOrDefault()
+        {
+            var inventorySerialized = await _cache.GetStringAsync(entryKey, token);
+            GameInventoryFullProjection? cachedResult = inventorySerialized is not null
+                ? JsonSerializer.Deserialize<GameInventoryFullProjection>(inventorySerialized)
+                : null;
+            return cachedResult;
+        }
+
+        async Task SetCache()
+        {
+            var cacheOptions = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(20));
+            var serializedInventory = JsonSerializer.Serialize(inventoryMainProjection);
+            await _cache.SetStringAsync(entryKey, serializedInventory, cacheOptions, token);
+        }
     }
 }

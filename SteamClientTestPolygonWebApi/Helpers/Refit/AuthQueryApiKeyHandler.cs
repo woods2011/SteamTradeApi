@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using System.Collections.Specialized;
+using System.Web;
 
 namespace SteamClientTestPolygonWebApi.Helpers.Refit;
 
@@ -25,7 +26,7 @@ public class AuthQueryApiKeyHandler : DelegatingHandler
             return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
         var uriBuilder = new UriBuilder(request.RequestUri);
-        var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+        NameValueCollection query = HttpUtility.ParseQueryString(uriBuilder.Query);
         query[ParamAlias] = _apiKey;
         uriBuilder.Query = query.ToString();
         request.RequestUri = uriBuilder.Uri;

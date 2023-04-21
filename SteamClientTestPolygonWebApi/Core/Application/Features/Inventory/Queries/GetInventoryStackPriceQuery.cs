@@ -39,8 +39,9 @@ public class GetInventoryStackPriceQueryHandler :
             .AnyAsync(token);
 
         if (isInventoriesExist is false) return new NotFound();
-
-        var gameItemStackPriceProjections = await _dbCtx.Inventories
+    
+        List<GameItemStackPriceProjection> gameItemStackPriceProjections = await _dbCtx.Inventories
+            .Include(inv => inv.Assets).ThenInclude(asset => asset.GameItem)
             .Where(inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId)
             .SelectMany(inventory => inventory.Assets)
             .Where(asset => asset.IsMarketable)
@@ -51,13 +52,12 @@ public class GetInventoryStackPriceQueryHandler :
                 grouping.Count(),
                 grouping.First().GameItem.PriceInfo!.LowestMarketPriceUsd,
                 grouping.First().GameItem.ClassId))
-            .OrderByDescending(projection => projection.StackPriceUsd)
             .ToListAsync(token);
 
         var inventoryStackPriceProjection = new GameInventoryStackPriceProjection(
             appId,
             steam64Id,
-            gameItemStackPriceProjections);
+            gameItemStackPriceProjections.OrderByDescending(projection => projection.StackPriceUsd).ToList());
 
         return inventoryStackPriceProjection;
     }

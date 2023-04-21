@@ -33,7 +33,7 @@ public class GetSplitProjection : IClassFixture<InventoryWebAppFactory>
         await _factory.Client.PostAsync($"/Inventory/{steam64Id}/{appId}", null);
 
         //Act
-        var response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}/Split");
+        HttpResponseMessage response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}/Split");
 
         //Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -58,7 +58,7 @@ public class GetSplitProjection : IClassFixture<InventoryWebAppFactory>
         var (steam64Id, appId) = (Math.Abs(_fixture.Create<long>()), 730);
 
         //Act
-        var response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}/Split");
+        HttpResponseMessage response = await _factory.Client.GetAsync($"/Inventory/{steam64Id}/{appId}/Split");
 
         //Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

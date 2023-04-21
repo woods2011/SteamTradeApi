@@ -11,7 +11,7 @@ public class RequestUrihComAnonymityJudge : IProxyAnonymityJudge
 
     public async Task<ProxyAnonymityLevel> Judge(HttpContent responseMessage)
     {
-        var headersFromContent = await ParseHttpHeadersFromContent(responseMessage);
+        HeaderDictionary headersFromContent = await ParseHttpHeadersFromContent(responseMessage);
         return _proxyAnonymityByHeadersChecker.CheckProxyAnonymity(headersFromContent);
     }
 
