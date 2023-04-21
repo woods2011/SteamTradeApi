@@ -26,7 +26,9 @@ public class MarketController : ControllerBase
     /// </summary>
     /// <remarks>
     /// Sample request:
-    /// GET /Market/PriceHistory/570/The Abscesserator
+    /// 
+    ///     GET /Market/PriceHistory/570/The Abscesserator
+    /// 
     /// </remarks>
     /// <param name="query">GetItemMarketHistoryQuery object</param>
     /// <returns>Returns Item price chart</returns>
@@ -53,7 +55,9 @@ public class MarketController : ControllerBase
     /// </summary>
     /// <remarks>
     /// Sample request:
-    /// GET /Market/Listings/570/Skull of the Razorwyrm?Filter=Skull of the Razorwyrm NOT "Chaotic locked"
+    /// 
+    ///     GET /Market/Listings/570/Skull of the Razorwyrm?Filter=Skull of the Razorwyrm NOT "Chaotic locked"
+    /// 
     /// </remarks>
     /// <param name="query">GetItemMarketListingsQuery object</param>
     /// <returns>Returns Top10 lowest price listings of specified Item</returns>

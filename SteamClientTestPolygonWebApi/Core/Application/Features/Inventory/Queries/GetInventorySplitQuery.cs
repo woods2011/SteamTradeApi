@@ -12,10 +12,10 @@ namespace SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Queri
 public class GetInventorySplitQuery : IRequest<OneOf<GameInventorySplitProjection, NotFound>>
 {
     [Required]
-    public int AppId { get; init; }
-
-    [Required]
     public long Steam64Id { get; init; }
+    
+    [Required]
+    public int AppId { get; init; }
 }
 
 public class GetSteamInventorySplitQueryHandler :
@@ -23,16 +23,11 @@ public class GetSteamInventorySplitQueryHandler :
 {
     private readonly SteamTradeApiDbContext _dbCtx;
     private readonly IMapper _mapper;
-    private readonly ILogger<GetSteamInventoryFullQueryHandler> _logger;
 
-    public GetSteamInventorySplitQueryHandler(
-        SteamTradeApiDbContext dbCtx,
-        IMapper mapper,
-        ILogger<GetSteamInventoryFullQueryHandler> logger)
+    public GetSteamInventorySplitQueryHandler(SteamTradeApiDbContext dbCtx, IMapper mapper)
     {
         _dbCtx = dbCtx;
         _mapper = mapper;
-        _logger = logger;
     }
 
     public async Task<OneOf<GameInventorySplitProjection, NotFound>> Handle(

@@ -8,17 +8,22 @@ public class ErrorsController : ControllerBase
 {
     private readonly ILogger<ErrorsController> _logger;
 
-    public ErrorsController(ILogger<ErrorsController> logger) => 
+    public ErrorsController(ILogger<ErrorsController> logger) =>
         _logger = logger;
 
     [Route("/error")]
     public IActionResult Error()
     {
-        var exception = HttpContext.Features.Get<IExceptionHandlerFeature>()?.Error;
-        
+        Exception? exception = HttpContext.Features.Get<IExceptionHandlerFeature>()?.Error;
+
         if (exception is not null)
-            _logger.LogError(exception, exception.Message);
-        
+        {
+            _logger.LogError(
+                exception,
+                "An error occurred while processing user request. {@ErrorMessage}, {@DateTimeUtc}",
+                exception.Message, DateTime.UtcNow);
+        }
+
         return Problem();
     }
 }

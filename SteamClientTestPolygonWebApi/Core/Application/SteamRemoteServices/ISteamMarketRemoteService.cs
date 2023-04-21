@@ -119,7 +119,7 @@ public class SteamMarketRemoteService : ISteamMarketRemoteService
         var steamServiceResult = await SteamApiResponseToOneOfMapper.Map(() =>
             _steamPricesClient.GetItemMarketListingsWithHistoryRaw(appId, marketHashName, token));
 
-        if (!steamServiceResult.TryPickT0(out var responseHtml, out var errorsReminder)) return errorsReminder;
+        if (!steamServiceResult.TryPickResult(out var responseHtml, out var errors)) return errors;
 
         if (responseHtml is null) return null as GameItemMarketHistoryChartResponse;
 

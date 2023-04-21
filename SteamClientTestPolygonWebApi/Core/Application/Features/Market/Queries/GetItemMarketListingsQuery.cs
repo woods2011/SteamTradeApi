@@ -7,6 +7,7 @@ using OneOf.Types;
 using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
 using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
+using SteamClientTestPolygonWebApi.Helpers.Extensions;
 
 namespace SteamClientTestPolygonWebApi.Core.Application.Features.Market.Queries;
 
@@ -50,8 +51,8 @@ public class GetItemMarketListingsQueryHandler :
         var steamServiceResult =
             await _steamMarketService.GetItemMarketListings(appId, marketHashName, filter, token: token);
 
-        if (!steamServiceResult.TryPickT0(out var listingsExternalResponse, out var errorsReminder))
-            return errorsReminder;
+        if (!steamServiceResult.TryPickResult(out ListingsResponse? listingsExternalResponse, out var errors))
+            return errors;
 
         if (listingsExternalResponse is null) return new NotFound();
 

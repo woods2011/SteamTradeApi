@@ -2,6 +2,7 @@
 using System.Net.Http.Json;
 using AutoFixture;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using RichardSzalay.MockHttp;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
 using SteamClientTestPolygonWebApi.IntegrationTests.Controllers.Inventory.Setup;

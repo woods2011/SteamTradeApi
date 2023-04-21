@@ -36,12 +36,6 @@ public class GeneralWebAppFactory : WebApplicationFactory<SteamClientTestPolygon
                 options.EnableSensitiveDataLogging();
                 options.UseSqlite(connection: serviceProvider.GetRequiredService<DbConnection>());
             });
-
-            // Not Working почему-то
-            // using var scope = services.BuildServiceProvider().CreateScope();
-            // using var context = scope.ServiceProvider.GetRequiredService<SteamTradeApiDbContext>();
-            // context.Database.EnsureDeleted();
-            // context.Database.EnsureCreated();
         });
 
         builder.UseEnvironment("Development"); // ToDo: check if it's needed

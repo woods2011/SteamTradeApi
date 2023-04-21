@@ -29,7 +29,7 @@ public class SteamInventoriesClientTests
 
         var httpClient = mockHttp.ToHttpClient();
         httpClient.BaseAddress = new Uri("https://steamcommunity.com");
-        var api = RestService.For<IOfficialSteamInventoriesClient>(httpClient);
+        var api = RestService.For<ISteamInventoriesClient>(httpClient);
 
         // Act
         var result = await api.GetInventory(steam64Id, appId, startAssetId, maxCount);
@@ -54,7 +54,7 @@ public class SteamInventoriesClientTests
 
         var httpClient = mockHttp.ToHttpClient();
         httpClient.BaseAddress = new Uri("https://steamcommunity.com");
-        var api = RestService.For<IOfficialSteamInventoriesClient>(httpClient,
+        var api = RestService.For<ISteamInventoriesClient>(httpClient,
             new RefitSettings(new SystemTextJsonContentSerializer(SteamApiJsonSettings.Default)));
 
         // Act

@@ -1,6 +1,7 @@
 using System.Reflection;
 using Mapster;
 using MapsterMapper;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -9,6 +10,7 @@ using Polly.Extensions.Http;
 using Refit;
 using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Contracts.External;
+using SteamClientTestPolygonWebApi.Core.Application.Behaviors;
 using SteamClientTestPolygonWebApi.Core.Application.Common;
 using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.TradeCooldownParsers;
 using SteamClientTestPolygonWebApi.Helpers.Refit;
@@ -39,6 +41,7 @@ public class Program
             options => options.UseSqlite("Data Source=Database/SteamTradeApiDb.db"));
 
         builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingPipelineBehavior<,>));
         builder.AddMapster();
 
         builder.AddProxyInfrastructure();
@@ -57,17 +60,13 @@ public class Program
             options.EnableAnnotations();
         });
 
-        
+
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "SteamTradeApi v1");
-                options.RoutePrefix = String.Empty;
-            });
+            app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "SteamTradeApi v1"));
         }
         else app.UseExceptionHandler("/error");
 
@@ -176,12 +175,12 @@ internal static class DependencyInjectionExt
             IConfiguration config,
             RefitSettings refitSettings)
         {
-            services.AddSingleton<ISteamInventoriesRemoteService, SteamApisDotComUnOfficialSteamInventoriesService>();
+            services.AddSingleton<ISteamInventoriesRemoteService, SteamApisDotComInventoriesService>();
             services
-                .AddRefitClient<ISteamApisDotComUnOfficialSteamInventoriesClient>(refitSettings)
+                .AddRefitClient<ISteamApisDotComInventoriesClient>(refitSettings)
                 .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://api.steamapis.com"))
-                .AddPolicyHandler(ISteamApisDotComUnOfficialSteamInventoriesClient.RetryPolicy)
-                .AddPolicyHandler(ISteamApisDotComUnOfficialSteamInventoriesClient.TimeoutPolicy)
+                .AddPolicyHandler(ISteamApisDotComInventoriesClient.RetryPolicy)
+                .AddPolicyHandler(ISteamApisDotComInventoriesClient.TimeoutPolicy)
                 .AddHttpMessageHandler(() =>
                     new AuthQueryApiKeyHandler("8eNrfJoHLFzws8HhCSuFMLx8oPg") { ParamAlias = "api_key" });
 

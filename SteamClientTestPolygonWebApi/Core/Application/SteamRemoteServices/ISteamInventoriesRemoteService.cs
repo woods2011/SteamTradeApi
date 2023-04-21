@@ -1,4 +1,5 @@
 using SteamClientTestPolygonWebApi.Contracts.External;
+using SteamClientTestPolygonWebApi.Helpers.Extensions;
 using SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
 
 namespace SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
@@ -12,11 +13,11 @@ public interface ISteamInventoriesRemoteService
         CancellationToken token = default);
 }
 
-public class OfficialSteamInventoriesService : ISteamInventoriesRemoteService
+public class SteamInventoriesService : ISteamInventoriesRemoteService
 {
-    private readonly IOfficialSteamInventoriesClient _inventoriesClient;
+    private readonly ISteamInventoriesClient _inventoriesClient;
 
-    public OfficialSteamInventoriesService(IOfficialSteamInventoriesClient inventoriesClient) =>
+    public SteamInventoriesService(ISteamInventoriesClient inventoriesClient) =>
         _inventoriesClient = inventoriesClient;
 
     public async Task<SteamServiceResult<SteamSdkInventoryResponse?>> GetInventory(
@@ -43,12 +44,12 @@ public class OfficialSteamInventoriesService : ISteamInventoriesRemoteService
     }
 }
 
-public class SteamApisDotComUnOfficialSteamInventoriesService : ISteamInventoriesRemoteService
+public class SteamApisDotComInventoriesService : ISteamInventoriesRemoteService
 {
-    private readonly ISteamApisDotComUnOfficialSteamInventoriesClient _inventoriesClient;
+    private readonly ISteamApisDotComInventoriesClient _inventoriesClient;
 
-    public SteamApisDotComUnOfficialSteamInventoriesService(
-        ISteamApisDotComUnOfficialSteamInventoriesClient inventoriesClient) =>
+    public SteamApisDotComInventoriesService(
+        ISteamApisDotComInventoriesClient inventoriesClient) =>
         _inventoriesClient = inventoriesClient;
 
     public async Task<SteamServiceResult<SteamSdkInventoryResponse?>> GetInventory(
@@ -79,13 +80,14 @@ public static class GeneralInventoryFetchLogic
         long steamId,
         int appId,
         int maxCount,
-        Func<long, int, string?,
-            Task<SteamServiceResult<SteamSdkInventoryResponse?>>> fetchInventoryByPartsFunc)
+        Func<long, int, string?, Task<SteamServiceResult<SteamSdkInventoryResponse?>>> fetchInventoryByPartsFunc)
     {
         var firstFetchResult = await fetchInventoryByPartsFunc(steamId, appId, null);
 
-        if (!firstFetchResult.TryPickT0(out var accumulatedInventory, out var errors)) return firstFetchResult;
-        if (accumulatedInventory is null) {return firstFetchResult;}
+        if (!firstFetchResult.TryPickResult(out SteamSdkInventoryResponse? accumulatedInventory, out var errors)) 
+            return errors;
+        
+        if (accumulatedInventory is null) return firstFetchResult;
 
         var fetched = accumulatedInventory.Assets.Count;
         var totalInventoryCount = accumulatedInventory.TotalInventoryCount;
@@ -94,7 +96,7 @@ public static class GeneralInventoryFetchLogic
         {
             var fetchResult = await fetchInventoryByPartsFunc(steamId, appId, accumulatedInventory.LastAssetId);
 
-            if (!fetchResult.TryPickT0(out var newInventoryPart, out _)) return accumulatedInventory;
+            if (!fetchResult.TryPickResult(out var newInventoryPart, out _)) return accumulatedInventory;
             if (newInventoryPart is null) return accumulatedInventory;
 
             accumulatedInventory.Merge(newInventoryPart);

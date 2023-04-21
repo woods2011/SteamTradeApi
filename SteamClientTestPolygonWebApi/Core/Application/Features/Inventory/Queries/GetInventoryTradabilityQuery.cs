@@ -14,31 +14,18 @@ namespace SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Queri
 public class GetInventoryTradabilityQuery : IRequest<OneOf<GameInventoryTradabilityProjection, NotFound>>
 {
     [Required]
-    public int AppId { get; init; }
-
-    [Required]
     public long Steam64Id { get; init; }
+    
+    [Required]
+    public int AppId { get; init; }
 }
 
 public class GetInventoryTradabilityQueryHandler :
     IRequestHandler<GetInventoryTradabilityQuery, OneOf<GameInventoryTradabilityProjection, NotFound>>
 {
     private readonly SteamTradeApiDbContext _dbCtx;
-    private readonly IMapper _mapper;
-    private readonly IDistributedCache _cache;
-    private readonly ILogger<GetSteamInventoryFullQueryHandler> _logger;
 
-    public GetInventoryTradabilityQueryHandler(
-        SteamTradeApiDbContext dbCtx,
-        IMapper mapper,
-        IDistributedCache cache,
-        ILogger<GetSteamInventoryFullQueryHandler> logger)
-    {
-        _dbCtx = dbCtx;
-        _mapper = mapper;
-        _cache = cache;
-        _logger = logger;
-    }
+    public GetInventoryTradabilityQueryHandler(SteamTradeApiDbContext dbCtx) => _dbCtx = dbCtx;
 
     public async Task<OneOf<GameInventoryTradabilityProjection, NotFound>> Handle(
         GetInventoryTradabilityQuery query,

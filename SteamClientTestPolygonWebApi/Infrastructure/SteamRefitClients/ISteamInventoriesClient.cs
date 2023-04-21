@@ -9,7 +9,7 @@ using SteamClientTestPolygonWebApi.Contracts.External;
 
 namespace SteamClientTestPolygonWebApi.Infrastructure.SteamRefitClients;
 
-public interface IOfficialSteamInventoriesClient
+public interface ISteamInventoriesClient
 {
     [Get("/inventory/{steamId}/{appId}/2?l=english")]
     public Task<ApiResponse<SteamSdkInventoryResponse>> GetInventory(
@@ -30,7 +30,7 @@ public interface IOfficialSteamInventoriesClient
         Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10));
 }
 
-public interface ISteamApisDotComUnOfficialSteamInventoriesClient
+public interface ISteamApisDotComInventoriesClient
 {
     [Get("/steam/inventory/{steamId}/{appId}/2?")]
     public Task<ApiResponse<SteamSdkInventoryResponse>> GetInventory(

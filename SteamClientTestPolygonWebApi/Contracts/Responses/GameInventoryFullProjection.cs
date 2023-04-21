@@ -10,6 +10,7 @@ public record GameInventoryFullProjection(
     public string OwnerSteam64Id { get; } = OwnerSteam64Id;
     public DateTime LastUpdateTimeUtc { get; } = LastUpdateTimeUtc;
     public int TotalAssetsCount => Assets.Count;
+    public decimal TotalPriceUsd => Assets.Sum(asset => asset.GameItem.PriceInfo?.LowestMarketPriceUsd ?? 0);
     public IReadOnlyCollection<GameInventoryAssetFullProjection> Assets { get; } = Assets;
 }
 // Note: Mapster conflicts (causes double left join) with Init and PrimaryCtor when computed properties are present. Ignore Prop not help.
@@ -22,11 +23,14 @@ public record GameInventoryAssetFullProjection(
     bool IsMarketable,
     string InstanceId);
 
-public class GameItemFullProjection
+public record GameItemFullProjection(
+    string MarketHashName,
+    string IconUrl,
+    string ClassId)
 {
-    public string MarketHashName { get; init; } = null!;
-    public string IconUrl { get; init; } = null!;
-    public string ClassId { get; init; } = null!;
+    public string MarketHashName { get; } = MarketHashName;
+    public string IconUrl { get; } = IconUrl;
+    public string ClassId { get; } = ClassId;
     public PriceInfoFullProjection? PriceInfo { get; init; }
 }
 

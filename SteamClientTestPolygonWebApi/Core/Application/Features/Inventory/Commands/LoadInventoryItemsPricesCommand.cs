@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using OneOf;
 using OneOf.Types;
+using SteamClientTestPolygonWebApi.Contracts.External;
 using SteamClientTestPolygonWebApi.Core.Application.Common;
 using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Core.Domain.Item;
+using SteamClientTestPolygonWebApi.Helpers.Extensions;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 
 namespace SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Commands;
@@ -15,10 +17,10 @@ namespace SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Comma
 public class LoadInventoryItemsPricesCommand : IRequest<OneOf<Success, NotFound>>
 {
     [Required]
-    public int AppId { get; init; }
-
-    [Required]
     public long Steam64Id { get; init; }
+    
+    [Required]
+    public int AppId { get; init; }
 }
 
 public class LoadInventoryItemsPricesCommandHandler :
@@ -28,21 +30,18 @@ public class LoadInventoryItemsPricesCommandHandler :
     private readonly ISteamMarketRemoteService _steamMarketService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IDistributedCache _cache;
-    private readonly ILogger<LoadInventoryCommandHandler> _logger;
 
 
     public LoadInventoryItemsPricesCommandHandler(
         SteamTradeApiDbContext dbCtx,
         ISteamMarketRemoteService steamMarketService,
         IDateTimeProvider dateTimeProvider,
-        IDistributedCache cache,
-        ILogger<LoadInventoryCommandHandler> logger)
+        IDistributedCache cache)
     {
         _dbCtx = dbCtx;
         _steamMarketService = steamMarketService;
         _dateTimeProvider = dateTimeProvider;
         _cache = cache;
-        _logger = logger;
     }
 
 
@@ -57,7 +56,6 @@ public class LoadInventoryItemsPricesCommandHandler :
             inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId, token);
 
         if (doesInventoryExist is false) return new NotFound();
-        // _logger.LogWarning("Inventory not found for steam64Id: {Steam64Id} and appId: {AppId}", steam64Id, appId);
 
         var uniqueItemsFromInventory = await _dbCtx.Inventories
             .Where(inv => inv.OwnerSteam64Id == steam64Id && inv.AppId == appId) // .Take(1)
@@ -73,7 +71,7 @@ public class LoadInventoryItemsPricesCommandHandler :
 
         foreach (var (gameItem, steamServiceResult) in uniqueItemsFromInventory.Zip(prices))
         {
-            steamServiceResult.TryPickT0(out var itemPriceResponse, out var errors);
+            steamServiceResult.TryPickResult(out SteamSdkItemPriceResponse? itemPriceResponse, out _);
             if (itemPriceResponse?.LowestPrice is null) continue;
 
             var (lowestPrice, medianPrice) = (itemPriceResponse.LowestPrice, itemPriceResponse.MedianPrice);

@@ -1,6 +1,5 @@
 ﻿namespace SteamClientTestPolygonWebApi.Contracts.Responses;
 
-
 public record GameItemMarketHistoryChartResponse(
     IEnumerable<GameItemMarketHistoryChartPointResponse> HistoryChartPointResponses);
 

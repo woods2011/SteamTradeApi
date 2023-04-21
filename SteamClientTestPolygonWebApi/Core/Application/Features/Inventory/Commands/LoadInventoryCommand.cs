@@ -12,6 +12,7 @@ using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Mapping.M
 using SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.TradeCooldownParsers;
 using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
 using SteamClientTestPolygonWebApi.Core.Domain.GameInventoryAggregate;
+using SteamClientTestPolygonWebApi.Helpers.Extensions;
 using SteamClientTestPolygonWebApi.Infrastructure.Persistence;
 
 namespace SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Commands;
@@ -19,10 +20,10 @@ namespace SteamClientTestPolygonWebApi.Core.Application.Features.Inventory.Comma
 public class LoadInventoryCommand : IRequest<LoadInventoryResult>
 {
     [Required]
-    public int AppId { get; init; }
+    public long Steam64Id { get; init; }
 
     [Required]
-    public long Steam64Id { get; init; }
+    public int AppId { get; init; }
 
     [Range(1, 7000)]
     public int MaxCount { get; init; } = 500;
@@ -35,7 +36,6 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
     private readonly ITradeCooldownParserFactory _tradeCooldownParserFactory;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IDistributedCache _cache;
-    private readonly ILogger<LoadInventoryCommandHandler> _logger;
 
 
     public LoadInventoryCommandHandler(
@@ -43,15 +43,13 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
         ISteamInventoriesRemoteService steamInventoriesService,
         ITradeCooldownParserFactory tradeCooldownParserFactory,
         IDateTimeProvider dateTimeProvider,
-        IDistributedCache cache,
-        ILogger<LoadInventoryCommandHandler> logger)
+        IDistributedCache cache)
     {
         _dbCtx = dbCtx;
         _steamInventoriesService = steamInventoriesService;
         _tradeCooldownParserFactory = tradeCooldownParserFactory;
         _dateTimeProvider = dateTimeProvider;
         _cache = cache;
-        _logger = logger;
     }
 
 
@@ -61,8 +59,8 @@ public class LoadInventoryCommandHandler : IRequestHandler<LoadInventoryCommand,
 
         var steamServiceResult = await _steamInventoriesService.GetInventory(steam64Id, appId, command.MaxCount, token);
 
-        if (!steamServiceResult.TryPickT0(out var steamSdkInventoryResponse, out var errorsReminder))
-            return errorsReminder.Match<LoadInventoryResult>(
+        if (!steamServiceResult.TryPickResult(out SteamSdkInventoryResponse? steamSdkInventoryResponse, out var errors))
+            return errors.Match<LoadInventoryResult>(
                 notFound => notFound,
                 error => error,
                 steamError => steamError.StatusCode is HttpStatusCode.Forbidden ? new NotFound() : steamError);

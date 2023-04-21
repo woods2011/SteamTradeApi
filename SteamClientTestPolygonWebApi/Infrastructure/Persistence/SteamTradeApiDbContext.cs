@@ -17,7 +17,7 @@ public class SteamTradeApiDbContext : DbContext
 
     public DbSet<GameInventoryAsset> Assets { get; set; } = null!;
 
-    public DbSet<GameItem> Items { get; set; } = null!;
+    public DbSet<GameItem> Items { get; set; } = null!; 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

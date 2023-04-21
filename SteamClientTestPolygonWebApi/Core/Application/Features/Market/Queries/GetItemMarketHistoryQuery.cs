@@ -6,6 +6,7 @@ using OneOf;
 using OneOf.Types;
 using SteamClientTestPolygonWebApi.Contracts.Responses;
 using SteamClientTestPolygonWebApi.Core.Application.SteamRemoteServices;
+using SteamClientTestPolygonWebApi.Helpers.Extensions;
 
 namespace SteamClientTestPolygonWebApi.Core.Application.Features.Market.Queries;
 
@@ -46,7 +47,8 @@ public class GetItemMarketHistoryQueryHandler :
 
         var steamServiceResult = await _steamMarketService.GetItemMarketHistory(appId, marketHashName, token);
 
-        if (!steamServiceResult.TryPickT0(out var chartResponse, out var errorsReminder)) return errorsReminder;
+        if (!steamServiceResult.TryPickResult(out GameItemMarketHistoryChartResponse? chartResponse, out var errors)) 
+            return errors;
 
         if (chartResponse is null) return new NotFound();
 

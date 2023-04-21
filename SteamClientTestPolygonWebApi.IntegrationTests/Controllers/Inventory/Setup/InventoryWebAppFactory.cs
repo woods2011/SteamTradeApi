@@ -44,8 +44,8 @@ public class InventoryWebAppFactory : GeneralWebAppFactory
                     b.AdditionalHandlers.Clear();
                 });
 
-            services.AddSingleton<ISteamInventoriesRemoteService, OfficialSteamInventoriesService>();
-            services.AddRefitClient<IOfficialSteamInventoriesClient>(generalSteamRefitClientSettings)
+            services.AddSingleton<ISteamInventoriesRemoteService, SteamInventoriesService>();
+            services.AddRefitClient<ISteamInventoriesClient>(generalSteamRefitClientSettings)
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://steamcommunity.com"))
                 .ConfigureHttpMessageHandlerBuilder(b =>
                 {
